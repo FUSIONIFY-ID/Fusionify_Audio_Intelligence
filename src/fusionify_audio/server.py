@@ -4,7 +4,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from .project import ProjectOptions
-from .rhythm import TempoRegion
+from .rhythm import Number, TempoRegion
 from .service import Service
 
 
@@ -73,7 +73,7 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return await asyncio.to_thread(service.describe_audio,analysis_id,question,allow_external_processing)
 
     @mcp.tool(annotations=write)
-    def render_beat_preview(analysis_id: str, start_s: float=0, duration_s: float|None=None, click_volume: float=1) -> dict:
+    def render_beat_preview(analysis_id: str, start_s: float=0, duration_s: float|None=None, click_volume: Number=1) -> dict:
         """Queue audible timing review, full duration by default. click_volume=0 keeps original music level.
 
         Click volume accepts 0 to 2; positive volume adds markers and lowers music to 78 percent.
@@ -90,7 +90,7 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return await asyncio.to_thread(service.rhythm_review,analysis_id)
 
     @mcp.tool(annotations=read)
-    def estimate_tap_tempo(tap_times_s: list[float]) -> dict:
+    def estimate_tap_tempo(tap_times_s: list[Number]) -> dict:
         """Estimate 30-300 BPM from 4-128 ordered source-relative taps; reject inconsistent input.
 
         Does not save anything or prove musical accuracy. Use the returned BPM in an explicit tempo map.
@@ -98,7 +98,7 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return service.tap_tempo(tap_times_s)
 
     @mcp.tool(annotations=write)
-    async def apply_tempo_map(analysis_id: str, regions: list[TempoRegion], snap_tolerance_s: float=0) -> dict:
+    async def apply_tempo_map(analysis_id: str, regions: list[TempoRegion], snap_tolerance_s: Number=0) -> dict:
         """Create a new timing analysis from 1-32 user-directed tempo regions, retaining the original.
 
         Each region has source-relative start_s, end_s, first_beat_s and bpm (30-300).
@@ -136,7 +136,7 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return service.timeline(analysis_id,start_s,end_s,limit)
 
     @mcp.tool(annotations=write)
-    def correct_beat_markers(analysis_id: str, beat_times_s: list[float]) -> dict:
+    def correct_beat_markers(analysis_id: str, beat_times_s: list[Number]) -> dict:
         """Create a new analysis with user-provided source-relative markers; retain the original analysis."""
         return service.correct_beats(analysis_id,beat_times_s)
 

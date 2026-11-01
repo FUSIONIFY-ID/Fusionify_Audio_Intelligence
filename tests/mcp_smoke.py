@@ -43,6 +43,9 @@ async def main():
                 assert len(review['waveform'])==1200
                 taps=payload(await session.call_tool('estimate_tap_tempo',{'tap_times_s':[.4,.9,1.4,1.9]}))
                 assert taps['tempo_bpm_estimate']==120
+                assert (await session.call_tool('estimate_tap_tempo',{'tap_times_s':[0,.5,True,1.5]})).isError
+                assert (await session.call_tool('render_beat_preview',{'analysis_id':aid,'click_volume':True})).isError
+                assert (await session.call_tool('correct_beat_markers',{'analysis_id':aid,'beat_times_s':[True]})).isError
                 mapped=payload(await session.call_tool('apply_tempo_map',{'analysis_id':aid,'regions':[
                     {'start_s':0,'end_s':3,'bpm':120,'first_beat_s':.4}],'snap_tolerance_s':.03}))
                 assert mapped['parent_analysis_id']==aid and mapped['analysis_id']!=aid

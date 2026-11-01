@@ -189,6 +189,8 @@ function editMarkers(next) {
 }
 async function loadRhythm() {
   const audio=await ensureAnalysis(), version=++reviewGeneration;
+  clearTimeout(audioPollTimer);audioJob=null;
+  $('review-audio').pause();$('review-audio').removeAttribute('src');$('review-audio').load();$('review-audio').hidden=true;
   const data=await call('get_rhythm_review',{analysis_id:audio.analysis_id});
   if(version!==reviewGeneration||analysis?.analysis_id!==audio.analysis_id)return;
   rhythmData=data;markers=data.beats.map(b=>b.time_s);savedMarkers=[...markers];markerHistory=[];
