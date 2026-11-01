@@ -8,5 +8,7 @@
 - `energy_rise_candidate` marks a measured rise, not a confirmed chorus, drop, or build-up.
 - Silence and ambiguous music can return `tempo_bpm_estimate: null` and no beat events. Do not fill missing data with invented markers.
 - Changed source bytes require reanalysis. Rendering checks source SHA-256 against the stored analysis.
-- v0.1 estimates one global tempo. Tempo-changing music needs human inspection and may require later segmented tracking.
+- Automatic tracking still estimates a global pulse. v0.3 tempo maps support explicit user-directed tempo regions; they do not automatically establish changing musical tempo.
+- Musical pacing separates held editorial sections from small pulse reactions. Energy matches and pulse markers remain candidates; opening/feature/closing are creative roles.
+- A preview uses the beginning of the saved full sequence rather than replanning the same story over a shorter duration.
 - Test a selected region audibly and visually. A good numerical fit on detected onsets alone does not prove perceptual synchronization.

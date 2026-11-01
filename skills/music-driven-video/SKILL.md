@@ -1,6 +1,6 @@
 ---
 name: music-driven-video
-description: Create and revise music-driven video projects, JJ, remix, breakbeat edits, product promos and cinematic montages from actual music and user photos/video. Use Fusionify MCP to analyze timing, save scenes, render with the original soundtrack, review previews and export timelines.
+description: Match actual music to a user's video content, story and visual direction. Create/revise JJ, remix, breakbeat, product or cinematic edits using measured timing, readable scene pacing, small beat reactions, native globe/graphic stories or user footage. Review content-fit risks and render with the original soundtrack.
 ---
 
 # Music-driven video
@@ -11,16 +11,18 @@ Use Fusionify MCP tools when available. Keep replies in the user's language. Thi
 
 1. Call `get_workspace`. Reuse known asset IDs or `list_media_assets`. For remote mode, provide the returned upload URL. For local mode, register actual files inside the configured media directory with `register_media_asset`. Chat attachments are not automatically accessible. Import a direct HTTPS URL only with `import_media_url` when its host is operator-allowlisted.
 2. Call `analyze_audio` on the exact soundtrack file or asset ID. Read duration and warnings. Inspect relevant sections with `get_audio_timeline`; narrow time ranges if truncated. Never infer timing from a song title or a different remix.
-3. Use the full remaining music by default. Create a shorter project only when requested. `preview=true` is an explicit low-resolution sample of at most eight seconds; final rendering retains the saved project duration.
-4. Call `create_video_project`. Choose `jj`, `cinematic`, `promo`, or `minimal`; choose effect density and `motion_amount` from the user's request. Supply selected image/video asset IDs to produce a montage, or leave them empty for a waveform visualizer. Match aspect and resolution to the requested destination. Keep original footage audio muted while using the chosen soundtrack.
-5. Present the saved project's duration, visual direction, and important estimates. Use `get_project_timeline` for scene inspection when needed. Keep full-frame flashing off. Explain center-crop behavior if it would cut important content; preserve source files and logos.
-6. Call `render_video_project`; poll `get_job_status` to a terminal state. Do not call a queued or failed job a successful video. Present an actual `download_url` when returned; otherwise present the local `output_path` through available file tools. Never turn a local path or GitHub URL into an invented hosted URL.
+3. Resolve the content goal from the user's brief and prior context: subject, intended message, visual references, available assets and destination. Do not reduce content fit to BPM. Call `create_music_direction` with a concise `content_brief` and actual music range. Treat its opening/development/feature/closing sections as editorial proposals, not recognized musical sections. Read [direction.md](references/direction.md) before selecting a visual strategy or handling a quality complaint.
+4. Use full remaining music by default. Omit a shorter duration unless requested. Distinguish major scene changes from micro motion on ordinary beats: usually choose `pacing_mode: musical` for coherent stories, `beat` only for deliberate beat-cut edits. Choose copy and visual motifs to express the user's message across the proposed holds. Do not add facts, transactions, sales, testimonials or geographic reach as invented proof.
+5. Call `create_video_project`. Use `visual_mode: motion_graphics` plus `story_blocks` for native continuous globe/spectrum/orbit/illustrative audio-chart compositions without source footage. Use `auto` plus selected image/video IDs for montage, or no IDs for the simple waveform visualizer. Native blocks contain one headline, supporting copy and a visual; do not add an extra caption layer. For already composed footage, use `text_overlay: false`; if it was synchronized to this exact soundtrack, consider `video_playback: source_sync` or explicit clip in-points. Readable holds, motion strength, crop behavior, aspect and resolution must follow the brief. Preserve source files/logos and mute original footage audio while using chosen music.
+6. Call `review_content_fit`. Address rapid-cut, duplicate-text, drifting footage clock and short-loop risks with the smallest relevant option change; do not interpret its structural result as an aesthetic or sync score. Present duration, story direction and material timing estimates. Inspect `get_project_timeline` when needed. Keep full-frame flashing off.
+7. Call `render_video_project`; poll `get_job_status` to a terminal state. `preview=true` explicitly shows up to eight seconds of the saved sequence at low resolution; it does not rearrange the full story. Use available file/video tools to inspect actual frames and listen when supported. If unavailable, state that perceptual review is outstanding. Do not claim a queued/failed job is successful or a numerical test proves it looks good. Present the actual artifact URL/path. Never invent a hosted URL.
 
 ## Revise and recover
 
 - Use `list_video_projects` and `get_video_project` to recover IDs and current revisions after reconnecting.
 - Call `revise_video_project` with `expected_revision` and only changed option fields. Lower `motion_amount` to reduce shake/zoom/pan without changing style; lower `intensity` for fewer beat-driven changes. Use validated `scene_overrides` for exact placement of chosen assets. On a revision conflict, read the latest project and apply the user's intended change without overwriting unrelated changes.
 - Render a fresh job after revision. Running jobs retain their submitted revision. Tell the user which revision the preview represents.
+- When the user prefers an earlier video, compare the actual earlier/latest artifacts where accessible. Preserve the earlier composition as the baseline. Fix specific problems such as repeated opening footage, excessive cuts or duplicate titles; do not answer by adding more effects. Do not use a finished music-synchronized reference as generic montage clips under a second title.
 - Use `list_render_jobs` to recover status or refresh expired download URLs. Use `cancel_render_job` when the user requests cancellation; retain completed artifacts.
 - Use `export_video_timeline` for JSON project data or CSV scene markers. Do not call these native CapCut/Premiere project files.
 
@@ -34,4 +36,4 @@ Use `describe_music` only if the user explicitly agrees to external audio proces
 
 Do not promise scene generation from text, semantic recognition without a configured provider, perfect sync for every track, or bar/downbeat detection. For newly generated footage, use a separately available generation tool, then register its output and assemble the edit here.
 
-Read [timing.md](references/timing.md) for timing interpretation and [tools.md](references/tools.md) for supported options and examples.
+Read [direction.md](references/direction.md) for content-to-music decisions, [timing.md](references/timing.md) for timing interpretation and [tools.md](references/tools.md) for supported options and examples.

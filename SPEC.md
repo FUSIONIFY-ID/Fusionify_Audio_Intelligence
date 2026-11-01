@@ -1,4 +1,14 @@
-# Fusionify Audio Intelligence v0.3
+# Fusionify Audio Intelligence v0.4
+
+## v0.4 music-to-content direction contract
+
+The music skills must translate measured timing plus the user's content brief into a coherent edit. Review the music and content goal → propose a music direction plan → distinguish large editorial scene changes from small pulse reactions → supply story copy/visual motifs → preview → revise → render full duration. Preserve the approved first globe demo's clear typography, continuous motion and sparse scene hierarchy. Do not recycle that finished demo as footage under another full-frame title.
+
+Add `create_music_direction`: read-only source-relative section proposals and explicit evidence, energy measurements, content brief and small-motion accent counts. Editorial opening/development/closing roles are creative proposals, never detected musical sections or verified drops. Silence has no invented beat accents. Boundaries can use nearby measured/user timing; editorial boundaries remain labeled as such.
+
+Saved projects gain opt-in musical pacing and a native procedural motion-graphics renderer with user-supplied story blocks (headline, supporting copy, globe/spectrum/orbit/market visual). Motion uses a continuous project clock and actual audio samples/spectrum. Market charts are explicitly audio-derived illustrations, never business transaction data or geographic analytics. Typography stays within safe margins; no extra title is drawn over a composed motion scene. Existing v0.3 projects keep their default beat pacing/visualizer behavior.
+
+Montages gain an explicit overlay switch and source-synchronized footage playback. Existing continue-playback remains the default. No arbitrary user code or filter strings. Validate scene holds versus pulse counts, source/video offsets, provenance, quiet/silent tracks, narrative coverage, native renders, continuous motion time, text bounds and original soundtrack correlation. Render a full-length demonstration through the installed project service, not an independent one-off script.
 
 ## v0.3 rhythm editing contract
 

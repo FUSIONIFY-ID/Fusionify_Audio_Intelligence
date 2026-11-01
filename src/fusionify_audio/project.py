@@ -2,6 +2,14 @@
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from .render import edit_plan
+from .direction import music_direction
+
+
+class StoryBlock(BaseModel):
+    model_config=ConfigDict(extra='forbid',allow_inf_nan=False)
+    headline: str=Field(min_length=1,max_length=80)
+    support: str=Field(default='',max_length=140)
+    visual: Literal['globe','spectrum','orbit','market']='globe'
 
 
 class SceneOverride(BaseModel):
@@ -28,10 +36,29 @@ class ProjectOptions(BaseModel):
     motion_amount: float=Field(default=.6,ge=0,le=1)
     fit_mode: Literal['cover','contain']='cover'
     scene_overrides: list[SceneOverride]=Field(default_factory=list,max_length=720)
+    pacing_mode: Literal['beat','musical']='beat'
+    visual_mode: Literal['auto','motion_graphics']='auto'
+    text_overlay: bool=True
+    video_playback: Literal['continue','source_sync']='continue'
+    brand: str=Field(default='FUSIONIFY',min_length=1,max_length=40)
+    accent_color: Literal['lime','blue','coral']='lime'
+    content_brief: str=Field(default='',max_length=300)
+    story_blocks: list[StoryBlock]=Field(default_factory=list,max_length=8)
 
 
 def project_timeline(report: dict, options: ProjectOptions) -> dict:
     plan=edit_plan(report,options.music_in_s,options.duration_s,options.intensity)
+    native=options.visual_mode=='motion_graphics'
+    if native and (options.asset_ids or options.scene_overrides):
+        raise ValueError('Motion graphics use native story blocks; do not supply footage assets or scene overrides.')
+    if options.story_blocks and not native:
+        raise ValueError('Story blocks require visual_mode motion_graphics.')
+    direction=None
+    if options.pacing_mode=='musical' or native:
+        direction=music_direction(report,options.music_in_s,options.duration_s,options.intensity,
+                                  max(2,len(options.story_blocks)) if options.story_blocks else 5,options.content_brief)
+        if native and options.story_blocks and len(direction['sections'])<len(options.story_blocks):
+            raise ValueError('Selected duration is too short for every story block. Reduce blocks, increase duration, or choose higher intensity.')
     min_gap={'jj':.25,'cinematic':1.5,'promo':.8,'minimal':2.0}[options.style]
     candidates=[]
     last=0.0
@@ -39,6 +66,8 @@ def project_timeline(report: dict, options: ProjectOptions) -> dict:
         t=event['video_time_s']
         if t-last>=min_gap and plan['duration_s']-t>=min_gap:
             candidates.append(t);last=t
+    if direction:
+        candidates=[s['start_s'] for s in direction['sections'][1:]]
     # No reliable pulse means a continuous scene; do not fabricate beat events.
     editorial_fallback=False
     if options.asset_ids and len(candidates)+1<len(options.asset_ids):
@@ -64,9 +93,10 @@ def project_timeline(report: dict, options: ProjectOptions) -> dict:
             if round(scene['end_s']*30)<=round(scene['start_s']*30):raise ValueError('Each scene must occupy at least one output frame.')
             previous=scene['end_s']
         if abs(previous-plan['duration_s'])>.0001:raise ValueError('Override scenes must cover the entire selected duration.')
-    return {**plan,'schema_version':'0.3.0','style':options.style,'scenes':scenes,
+    return {**plan,'schema_version':'0.4.0','style':options.style,'scenes':scenes,
+            'pacing_mode':'musical' if direction else 'beat','visual_mode':options.visual_mode,'music_direction':direction,
             'caption':options.caption,'audio_gain_db':options.audio_gain_db,
             'motion_amount':options.motion_amount,'fit_mode':options.fit_mode,
-            'scene_boundary_source':'user overrides' if options.scene_overrides else 'editorial equal split (insufficient beat candidates)' if editorial_fallback else report.get('beat_provenance','estimated beat candidates'),
+            'scene_boundary_source':'user overrides' if options.scene_overrides else 'editorial equal split (insufficient scene boundaries)' if editorial_fallback else 'music-assisted editorial sections' if direction else report.get('beat_provenance','estimated beat candidates'),
             'aspect':options.aspect,'resolution':options.resolution,
             'note':'Scene boundaries are source-derived candidates. Frame rounding applies during rendering.'}

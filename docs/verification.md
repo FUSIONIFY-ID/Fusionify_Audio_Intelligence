@@ -1,8 +1,16 @@
-# Verification notes for v0.3
+# Verification notes for v0.4
+
+## Music-to-content direction
+
+v0.4 adds five backend tests (30 total), two MCP tools (29 total), a source-evidence/editorial direction planner, native procedural graphics and content-fit checks. Added tests cover readable sections versus many micro accents, source offsets, eligible energy-rise preference, silence, continuous clocks across scene boundaries, bounded text in 9:16/16:9/1:1, actual native encoding and audio correlation, preview prefix preservation and source-synchronized clip playback without an overlay. A regression case reproduces rapid cuts, possible duplicate titles, mixed-media clock drift and short-clip loops; after the relevant option fixes, only the genuine short-source risk remains.
+
+The native renderer is fixed application code. It does not run model-generated code. Its market visual is an explicitly labeled audio-derived illustration, not sales, geographic or financial data. The host assistant chooses story meaning from the user brief. Structural checks and numerical timing/audio tests do not establish subjective content quality or perceptual beat correctness.
+
+Advanced v0.4 direction is currently through MCP/CLI. Existing console controls are kept compatible and the browser workflow remains a regression check; no new UI controls are claimed. The full-length demonstration is rendered through Service.create_project/render_project using the user's actual sound rather than an independent renderer outside the package.
 
 ## Backend and protocol checks
 
-The automated suite covers 25 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (27 tools total).
+The automated suite covers 30 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (29 tools total).
 
 Waveform/MP3 and image/video montage outputs are decoded and probed, including short video looping and music in-points. Audio correlation checks use a known synthetic source; they do not establish perceptual alignment for every musical style. A package build also verifies the HTML/CSS/JS console is included in the wheel.
 

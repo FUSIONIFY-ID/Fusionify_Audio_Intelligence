@@ -33,10 +33,18 @@ async def main():
                 assert {'analyze_audio','get_audio_timeline','create_edit_plan','render_visualizer','get_job_status',
                         'create_video_project','revise_video_project','render_video_project','export_video_timeline',
                         'cancel_render_job','correct_beat_markers','import_media_url',
-                        'get_rhythm_review','apply_tempo_map','estimate_tap_tempo'}.issubset(names),names
+                        'get_rhythm_review','apply_tempo_map','estimate_tap_tempo',
+                        'create_music_direction','review_content_fit'}.issubset(names),names
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
                 assert report['duration_s']==3
                 aid=report['analysis_id']
+                direction=payload(await session.call_tool('create_music_direction',{'analysis_id':aid,'content_brief':'Short product introduction'}))
+                assert direction['sections'] and direction['accent_count']>0
+                assert 'accents' not in direction
+                native=payload(await session.call_tool('create_video_project',{'analysis_id':aid,'options':{
+                    'visual_mode':'motion_graphics','pacing_mode':'musical','story_blocks':[{'headline':'Product story','visual':'globe'}]}}))
+                fit=payload(await session.call_tool('review_content_fit',{'project_id':native['project_id']}))
+                assert fit['status']=='no_structural_flags'
                 timeline=payload(await session.call_tool('get_audio_timeline',{'analysis_id':aid}))
                 assert timeline['beats']
                 review=payload(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))

@@ -52,6 +52,8 @@ async def main():
                         report=result_data(result)
                         assert report['duration_s']==3,report
                         aid=report['analysis_id']
+                        direction=result_data(await session.call_tool('create_music_direction',{'analysis_id':aid,'content_brief':'Short editorial test'}))
+                        assert direction['sections'] and direction['duration_s']==3
                         review=result_data(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))
                         assert len(review['waveform'])==1200
                         mapped=result_data(await session.call_tool('apply_tempo_map',{'analysis_id':aid,'regions':[

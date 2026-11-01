@@ -98,7 +98,8 @@ def montage(source: Path, timeline: dict, options: dict, media: dict,
                     image_cache[asset_id]=normalized
                 args+=['-f','image2','-loop','1','-framerate','30','-i',str(image_cache[asset_id])]
             else:
-                offset=scene.get('video_in_s',video_offsets.get(asset_id,0))%asset['metadata']['duration_s']
+                position=timeline['music_in_s']+scene['start_s'] if options['video_playback']=='source_sync' else video_offsets.get(asset_id,0)
+                offset=scene.get('video_in_s',position)%asset['metadata']['duration_s']
                 args+=['-protocol_whitelist','file,pipe','-f','mov','-stream_loop','-1','-ss',str(offset),'-i',str(path)]
                 video_offsets[asset_id]=offset+frames/fps
             shot=folder/f'shot{len(shots):04d}.mp4'
@@ -111,15 +112,17 @@ def montage(source: Path, timeline: dict, options: dict, media: dict,
         listing=folder/'shots.txt'
         listing.write_text(''.join("file '"+name+"'\n" for name in shots),encoding='utf-8')
         overlay=folder/'caption.png'
-        overlay_image(overlay,width,height,options['title'],options['caption'])
+        if options['text_overlay']:overlay_image(overlay,width,height,options['title'],options['caption'])
         args=['ffmpeg','-nostdin','-v','error','-y','-protocol_whitelist','file,pipe',
               '-f','concat','-safe','1','-i',str(listing),
               '-protocol_whitelist','file,pipe','-f',DEMUXERS[source.suffix.lower()],
-              '-ss',str(timeline['music_in_s']),'-i',str(source),
-              '-loop','1','-i',str(overlay),'-filter_complex','[0:v][2:v]overlay=0:0:shortest=1[v]',
-              '-map','[v]','-map','1:a:0','-c:v','libx264','-threads','2','-filter_complex_threads','1',
-              '-preset','veryfast','-crf','21','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k',
-              '-t',str(duration),'-movflags','+faststart']
+              '-ss',str(timeline['music_in_s']),'-i',str(source)]
+        if options['text_overlay']:
+            args+=['-loop','1','-i',str(overlay),'-filter_complex','[0:v][2:v]overlay=0:0:shortest=1[v]',
+                   '-map','[v]','-c:v','libx264','-threads','2','-filter_complex_threads','1',
+                   '-preset','veryfast','-crf','21','-pix_fmt','yuv420p']
+        else:args+=['-map','0:v:0','-c:v','copy']
+        args+=['-map','1:a:0','-c:a','aac','-b:a','192k','-t',str(duration),'-movflags','+faststart']
         if options['audio_gain_db']:
             args+=['-af',f"volume={options['audio_gain_db']}dB,alimiter=limit=0.98"]
         args.append(str(output))

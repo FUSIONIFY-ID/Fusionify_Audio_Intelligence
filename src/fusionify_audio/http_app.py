@@ -118,7 +118,7 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         if filename not in ('app.js','app.css'):return Response(status_code=404)
         return FileResponse(web/filename,media_type='text/javascript' if filename.endswith('.js') else 'text/css')
 
-    async def health(request):return JSONResponse({'status':'ok','version':'0.3.0'})
+    async def health(request):return JSONResponse({'status':'ok','version':'0.4.0'})
 
     async def upload(request: Request):
         filename=unquote(request.headers.get('x-filename',''))
@@ -150,11 +150,13 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         'list_media_assets':lambda **kw:{'assets':service.assets(**kw)},
         'analyze_audio':service.analyze,'get_audio_profile':service.profile,
         'get_audio_timeline':service.timeline,'correct_beat_markers':service.correct_beats,
+        'create_music_direction':service.music_direction,
         'get_rhythm_review':service.rhythm_review,'estimate_tap_tempo':service.tap_tempo,
         'apply_tempo_map':service.apply_tempo_map,
         'import_media_url':service.import_url,
         'create_video_project':lambda **kw:project_summary(service.create_project(**kw)),
         'get_video_project':lambda **kw:project_summary(service.project(**kw)),
+        'review_content_fit':service.content_fit,
         'revise_video_project':lambda **kw:project_summary(service.revise_project(**kw)),
         'render_video_project':service.render_project,'render_visualizer':service.render,
         'get_job_status':service.status,'cancel_render_job':service.cancel_job,

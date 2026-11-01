@@ -4,7 +4,7 @@
 
 Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## What v0.3 does
+## What v0.4 does
 
 | Capability | Implementation |
 | --- | --- |
@@ -12,6 +12,9 @@ Give Claude real audio timing, a revisable video project, and tools to turn your
 | Timing review | Full-length click preview, waveform SVG, JSON analysis, manual beat corrections retained as a new analysis |
 | Rhythm editor | Listen/seek original or click audio, waveform range, marker add/remove/undo/reset, immutable timing copies |
 | Tempo directions | Tap-tempo estimate, 1–32 source-relative BPM regions for known tempo changes, optional measured-onset snapping |
+| Music-to-content direction | Readable editorial sections, explicit audio-event evidence, user content brief and separate micro-motion accents |
+| Native motion graphics | Continuous globe, spectrum, orbit and illustrative audio charts with user story blocks, safe text slots and original soundtrack |
+| Content-fit review | Structural flags for excessive cuts, possible duplicate copy, drifting footage clocks and looping short clips |
 | Media inputs | Local files, authenticated browser uploads, restricted direct HTTPS imports |
 | Video projects | Persistent projects, revision checks, title/caption, music range, asset selection, motion strength, cover/contain, explicit scene overrides |
 | Montage rendering | User photos and MP4/MOV clips, original soundtrack, fixed cut/zoom/pan/shake effects |
@@ -117,6 +120,20 @@ No public service is deployed by cloning this repository. A GitHub URL is not an
 
 ## Example conversation
 
+### Match the music to the content
+
+v0.4 makes the music skill responsible for the edit's direction: resolve the content goal, inspect actual music, call `create_music_direction`, choose readable story holds separately from ordinary beat accents, save a project, call `review_content_fit`, inspect a preview, then render full length. Section roles are creative proposals. A content brief is recorded for the host assistant; the DSP algorithm does not understand product meaning or judge artistic quality.
+
+For a graphic story without footage, save a project with `visual_mode: "motion_graphics"`, `pacing_mode: "musical"` and `story_blocks` containing `headline`, `support`, and `visual` (`globe`, `spectrum`, `orbit`, or `market`). Native graphics use a continuous project clock, actual waveform/spectral data and a single composed text layer. Up to eight blocks are supported; a very short range may require fewer blocks to keep them readable. `brand` and `accent_color` (lime/blue/coral) customize the composition.
+
+For an already designed clip, set `text_overlay: false` to avoid adding a second title. If the clip is already synchronized to the exact selected soundtrack, `video_playback: "source_sync"` uses music source time plus video time instead of slowing its progression between still images. Explicit scene in-points take precedence. Short clips can still loop; this option cannot manufacture missing footage. Existing projects keep their beat-pacing/per-asset-clock defaults.
+
+Native `market` graphics are explicitly labeled audio-derived illustrations. They are not real transactions, geographic analytics or market prices. Supply actual business evidence separately; do not invent proof from a music waveform. `review_content_fit` reports structural risks and does not claim to see pixels or validate subjective synchronization.
+
+Native graphics implement the small pulse reactions inside held scenes. Montage musical pacing controls its major scene boundaries; supplied footage retains fixed per-scene cut/zoom/pan/shake motion rather than gaining a reaction on every beat.
+
+CLI: `uv run fusionify-audio music-direction ANALYSIS_ID --brief "Introduce the product, then close with its name"`. Use `create-project --options options.json` for the native story. The companion console retains its established upload/rhythm/montage controls; advanced v0.4 story direction is currently through MCP or CLI.
+
 ### Review and correct rhythm
 
 Open **Review music timing** in the console, load the waveform, and prepare original audio or a click preview. Listen/seek, zoom the displayed source range, add/remove markers, and undo/reset unsaved changes. **Save timing copy** creates a new analysis and makes it the source for the next new project; existing projects retain their original timing. Unsaved marker edits block project creation/rendering until saved or reset. Preparing original audio retains its level; click previews lower music to 78 percent and mix soft markers. MP3 previews are re-encoded, not bit-identical to the source.
@@ -147,6 +164,7 @@ For custom generated footage, create clips with a separate generation tool, regi
 | Audio | `analyze_audio`, `get_audio_profile`, `get_audio_timeline`, `compare_audio` |
 | Review and correction | `render_beat_preview`, `export_audio_analysis`, `correct_beat_markers` |
 | Rhythm editing | `get_rhythm_review`, `estimate_tap_tempo`, `apply_tempo_map` |
+| Content direction | `create_music_direction`, `review_content_fit` |
 | Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
 | Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
 | Optional provider | `describe_music` |
@@ -158,7 +176,7 @@ Use `get_workspace` for current capabilities and limits. Ordinary DSP calls neve
 - Single trusted owner workspace, not a multi-tenant SaaS. Everyone holding its token can access its assets/projects.
 - Per file: 64 MiB; audio/video duration: 180 seconds; image limit: 24 megapixels.
 - At most 16 visual assets per project, four queued/active render jobs and one render worker.
-- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side.
+- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side, clipping the saved sequence rather than rearranging the story over a shorter range.
 - Render stages have time limits; completed artifacts persist. Plan storage/cleanup on the host; the application does not automatically delete older user assets or completed work.
 - HTTP artifact links expire after ten minutes. Refresh job status or export again for a new link.
 - URL imports accept direct public HTTPS media files from exact operator-allowlisted hosts. Redirects are revalidated and the resolved public IP is pinned while TLS verifies the hostname. Streaming pages, private networks and subscription bypasses are unsupported.

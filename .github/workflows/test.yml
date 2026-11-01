@@ -76,7 +76,7 @@ jobs:
           request=urllib.request.Request('http://127.0.0.1:8000/api/call', data=data, headers={
               'Content-Type':'application/json','Authorization':'Bearer '+os.environ['FAI_API_TOKEN']})
           result=json.load(urllib.request.urlopen(request, timeout=5))
-          assert result['version']=='0.3.0', result
+          assert result['version']=='0.4.0', result
           print('PASS: non-root read-only container, compose configuration and authenticated workspace')
           PY
       - name: Container diagnostics

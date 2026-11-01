@@ -18,6 +18,7 @@ from .engine import analyze, decode, media_file
 from .project import ProjectOptions, project_timeline
 from .render import edit_plan, visualizer
 from .rhythm import estimate_taps, tempo_map_beats
+from .direction import music_direction
 from .store import Store, identifier
 
 
@@ -53,11 +54,13 @@ class Service:
 
     def workspace(self) -> dict:
         from .semantic import availability
-        return {'version':'0.3.0','mode':'single-owner workspace','upload_url':self.upload_url,
+        return {'version':'0.4.0','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
                 'rhythm_editing':{'tempo_regions':32,'bpm_range':[30,300],'max_snap_tolerance_s':.1,'max_manual_markers':2000},
+                'music_direction':{'pacing_modes':['beat','musical'],'native_visuals':['globe','spectrum','orbit','market'],
+                                   'max_story_blocks':8,'editorial_sections_are_proposals':True},
                 'note':'Attachments require explicit upload. DSP timing is estimated; semantic audio is separately opt-in.'}
 
     def describe_audio(self, analysis_id: str, question: str, allow_external_processing: bool=False) -> dict:
@@ -154,7 +157,7 @@ class Service:
             report = {**report,'onsets':measure(y)['onsets']}
             beats, parsed = tempo_map_beats(report,regions,snap_tolerance_s)
         new_id = uuid.uuid4().hex
-        derived = {**report,'schema_version':'0.3.0','beats':beats,'tempo_map':parsed,
+        derived = {**report,'schema_version':'0.4.0','beats':beats,'tempo_map':parsed,
                    'snap_tolerance_s':snap_tolerance_s,
                    'beat_provenance':'user tempo map; snapped markers retain measured onset provenance',
                    'parent_analysis_id':analysis_id}
@@ -174,7 +177,7 @@ class Service:
             raise ValueError('Beat times must be unique and strictly increasing.')
         new_id=uuid.uuid4().hex
         report={k:v for k,v in record['report'].items() if k not in ('tempo_map','snap_tolerance_s')}
-        report={**report,'schema_version':'0.3.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
+        report={**report,'schema_version':'0.4.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
                 'beat_provenance':'user supplied; not independently verified','parent_analysis_id':analysis_id}
         self.store.put('analysis',new_id,{'source_path':record['source_path'],'report':report})
         return {'analysis_id':new_id,'parent_analysis_id':analysis_id,'beat_count':len(beat_times_s),
@@ -196,6 +199,12 @@ class Service:
 
     def plan(self, analysis_id: str, start_s: float=0, duration_s: float|None=None, intensity: str='medium') -> dict:
         return {'analysis_id':analysis_id,**edit_plan(self.record(analysis_id)['report'],start_s,duration_s,intensity)}
+
+    def music_direction(self, analysis_id: str, start_s: float=0, duration_s: float|None=None,
+                        intensity: str='medium', section_count: int=5, content_brief: str='') -> dict:
+        result=music_direction(self.record(analysis_id)['report'],start_s,duration_s,intensity,section_count,content_brief)
+        # Full accent timestamps are already accessible through the audio timeline/review tools.
+        return {'analysis_id':analysis_id,**{k:v for k,v in result.items() if k!='accents'}}
 
     def _validate_options(self, analysis_id: str, options: dict) -> tuple[dict,dict]:
         parsed=ProjectOptions.model_validate(options)
@@ -219,6 +228,35 @@ class Service:
 
     def project(self, project_id: str) -> dict:
         return self.store.get('project',project_id)
+
+    def content_fit(self, project_id: str) -> dict:
+        project=self.project(project_id);options=ProjectOptions.model_validate(project['options'])
+        timeline=project['timeline'];scenes=timeline['scenes'];duration=timeline['duration_s'];flags=[]
+        media=[self.asset(aid) for aid in options.asset_ids]
+        videos=[a for a in media if a['kind']=='video']
+        if duration>=8 and len(scenes)/duration>1/1.5:
+            flags.append({'code':'rapid_scene_changes','suggestion':'Use musical pacing or longer explicit scenes; reserve ordinary beats for small movements.'})
+        if videos and options.text_overlay:
+            flags.append({'code':'check_existing_text','suggestion':'Inspect supplied footage for existing titles. Disable text_overlay when it is already composed.'})
+        if videos and any(a['kind']=='image' for a in media) and options.video_playback=='continue':
+            flags.append({'code':'footage_clock_may_drift','suggestion':'For footage already synchronized to this soundtrack, use source_sync or explicit source in-points.'})
+        for video in videos:
+            allocated=[s for s in scenes if s['asset_id']==video['asset_id']]
+            used=sum(s['end_s']-s['start_s'] for s in allocated)
+            length=video['metadata']['duration_s']
+            synced_end=max((s.get('video_in_s',timeline['music_in_s']+s['start_s'])+s['end_s']-s['start_s'] for s in allocated),default=0)
+            explicit_end=max((s['video_in_s']+s['end_s']-s['start_s'] for s in allocated if 'video_in_s' in s),default=0)
+            if (synced_end if options.video_playback=='source_sync' else max(used,explicit_end))>length+.01:
+                flags.append({'code':'short_clip_loops','asset_id':video['asset_id'],
+                              'suggestion':'This clip may loop. Use longer footage, fewer allocated seconds or native motion graphics when loops would break the story.'})
+        direction=timeline.get('music_direction')
+        if direction and not direction['accents']:
+            flags.append({'code':'no_pulse_accents','suggestion':'No pulse accents are available. Keep intentional continuous movement; do not invent beat synchronization.'})
+        return {'project_id':project_id,'revision':project['revision'],'status':'needs_review' if flags else 'no_structural_flags',
+                'content_brief':options.content_brief,'duration_s':duration,'scene_count':len(scenes),
+                'accent_count':direction['accent_count'] if direction else len(timeline['events']),
+                'flags':flags,'illustration_note':'Native market graphics use audio amplitudes, not business or financial data.',
+                'note':'Structural checks do not establish semantic content fit or perceptual synchronization. Inspect visuals and listen before publishing.'}
 
     def list_projects(self, limit: int=50) -> list[dict]:
         return [{k:v for k,v in p.items() if k!='timeline'} | {'duration_s':p['timeline']['duration_s'],
@@ -288,18 +326,27 @@ class Service:
 
     def render_project(self, project_id: str, preview: bool=False) -> dict:
         project=self.project(project_id)
-        options=dict(project['options'])
+        options,timeline=self._validate_options(project['analysis_id'],dict(project['options']))
         if preview:
             options['resolution']=480
             options['duration_s']=min(project['timeline']['duration_s'],8)
-            if options['scene_overrides']:
-                options['scene_overrides']=[{**scene,'end_s':min(scene['end_s'],options['duration_s'])}
-                    for scene in options['scene_overrides'] if scene['start_s']<options['duration_s']]
-        _,timeline=self._validate_options(project['analysis_id'],options)
+            length=options['duration_s']
+            timeline={**timeline,'resolution':480,'duration_s':length,
+                      'scenes':[{**s,'end_s':min(s['end_s'],length)} for s in timeline['scenes'] if s['start_s']<length],
+                      'events':[e for e in timeline['events'] if e['video_time_s']<length]}
+            if timeline['music_direction']:
+                d=timeline['music_direction']
+                timeline['music_direction']={**d,'duration_s':length,
+                    'sections':[{**s,'end_s':min(s['end_s'],length),
+                                 'source_end_s':min(s['source_end_s'],timeline['music_in_s']+length)} for s in d['sections'] if s['start_s']<length],
+                    'accents':[a for a in d['accents'] if a['video_time_s']<length]}
         media={aid:self.asset(aid,verify=True) for aid in options['asset_ids']}
         def worker(output,cancel,progress):
             source,y=self._verified_audio(project['analysis_id'])
-            if media:
+            if options['visual_mode']=='motion_graphics':
+                from .motion import render_motion
+                render_motion(source,y,timeline,options,output,cancel,progress)
+            elif media:
                 from .montage import montage
                 verified={aid:self.asset(aid,verify=True) for aid in media}
                 montage(source,timeline,options,verified,output,cancel,progress)

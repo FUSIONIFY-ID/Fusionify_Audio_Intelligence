@@ -1,5 +1,6 @@
 """MCP v1 stdio / HTTP tool adapter for the creator workspace."""
 import asyncio
+from pydantic import StrictInt
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
@@ -145,11 +146,27 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         """Create timing suggestions without saving a project; omit duration for all remaining music."""
         return service.plan(analysis_id,start_s,duration_s,intensity)
 
+    @mcp.tool(annotations=read)
+    def create_music_direction(analysis_id: str, start_s: float=0, duration_s: float|None=None,
+                               intensity: str='medium', section_count: StrictInt=5, content_brief: str='') -> dict:
+        """Propose music-to-content pacing from measured audio and a user content brief.
+
+        Separates 1-8 readable editorial sections from small beat-driven motion accents.
+        Returns source/video times, energy levels and boundary evidence. Opening/feature/closing
+        are creative roles, not detected chorus/drop/downbeats. Does not save or render anything.
+        Use pacing_mode=musical on the next project, and story_blocks for native motion graphics.
+        """
+        return service.music_direction(analysis_id,start_s,duration_s,intensity,section_count,content_brief)
+
     @mcp.tool(annotations=write)
     def create_video_project(analysis_id: str, options: ProjectOptions|None=None) -> dict:
         """Save an edit project: style, intensity, title/caption, music range, image/video IDs and output size.
 
-        No visual assets means a waveform visualizer. Supplied images/videos create a montage.
+        Default no assets means a waveform visualizer; images/videos create a montage.
+        Choose visual_mode=motion_graphics for native globe/spectrum/orbit/audio-chart story blocks,
+        pacing_mode=musical for readable scenes plus beat accents, and text_overlay=false for already
+        composed footage. video_playback=source_sync follows soundtrack source time without slowing
+        an existing music-synchronized clip when images are interleaved. Market visuals are illustrative.
         """
         return project_summary(service.create_project(analysis_id,options.model_dump() if options else {}))
 
@@ -157,6 +174,15 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
     def get_video_project(project_id: str) -> dict:
         """Get saved project options and revision number before editing or rendering."""
         return project_summary(service.project(project_id))
+
+    @mcp.tool(annotations=read)
+    def review_content_fit(project_id: str) -> dict:
+        """Check saved music/video structure for rapid cuts, possible duplicate text and footage-clock/loop risks.
+
+        Checks are explicit structural heuristics, not a claim to see footage or hear perfect sync.
+        Inspect the actual preview and brief. Use this before delivering a new edit, especially composed clips.
+        """
+        return service.content_fit(project_id)
 
     @mcp.tool(annotations=read)
     def get_project_timeline(project_id: str, offset: int=0, limit: int=100) -> dict:
@@ -172,6 +198,8 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
 
         Fields: title, caption, style, intensity, aspect, resolution, music_in_s, duration_s,
         asset_ids, audio_gain_db, motion_amount, fit_mode, scene_overrides.
+        Also pacing_mode, visual_mode, text_overlay, video_playback, brand, accent_color,
+        content_brief and story_blocks (headline/support/visual).
         Unknown fields, executable code and filter strings are rejected.
         """
         return project_summary(service.revise_project(project_id,expected_revision,changes))

@@ -1,6 +1,6 @@
 {
   "name": "fusionify-audio-intelligence",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Analyze actual music, revise beat-driven video projects, render photo/video montages and connect through local or authenticated remote MCP.",
   "author": {"name": "FUSIONIFY"},
   "homepage": "https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence",

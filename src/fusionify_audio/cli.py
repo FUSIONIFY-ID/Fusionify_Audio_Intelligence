@@ -22,6 +22,7 @@ def main():
     sub.add_parser('generate-token')
     analyze=sub.add_parser('analyze');analyze.add_argument('audio_path')
     plan=sub.add_parser('plan');plan.add_argument('analysis_id');plan.add_argument('--intensity',default='medium')
+    direction=sub.add_parser('music-direction');direction.add_argument('analysis_id');direction.add_argument('--brief',default='');direction.add_argument('--sections',type=int,default=5);direction.add_argument('--intensity',default='medium')
     for name in ('assets','projects','jobs'):sub.add_parser(name)
     profile=sub.add_parser('profile');profile.add_argument('analysis_id')
     create=sub.add_parser('create-project');create.add_argument('analysis_id');create.add_argument('--options',type=Path)
@@ -58,6 +59,7 @@ def main():
             result=None
             if args.action=='analyze':result=service.analyze(args.audio_path)
             elif args.action=='plan':result=service.plan(args.analysis_id,intensity=args.intensity)
+            elif args.action=='music-direction':result=service.music_direction(args.analysis_id,content_brief=args.brief,section_count=args.sections,intensity=args.intensity)
             elif args.action=='profile':result=service.profile(args.analysis_id)
             elif args.action=='rhythm-review':result=service.rhythm_review(args.analysis_id)
             elif args.action=='tap-tempo':result=service.tap_tempo(json.loads(args.times.read_text()))
