@@ -73,6 +73,28 @@ def page(record,offset=0,limit=50,include_words=False):
         'segment_count':len(segments),'next_offset':end if end<len(segments) else None}
 
 
+def review_hypothesis(segments,samples,origin):
+    """Navigation flags, never a calibrated probability of correct speech."""
+    from .engine import SR
+    flags=[];low=0;silent=0;missing=0
+    for si,segment in enumerate(segments):
+        if not segment.get('words'):missing+=1
+        for wi,word in enumerate(segment.get('words',[])):
+            reasons=[];p=word.get('probability')
+            if p is not None and p<.5:low+=1;reasons.append('model_probability_below_0.5')
+            start=max(0,int(word['start_s']*SR));end=min(len(samples),int(np.ceil(word['end_s']*SR)))
+            if end>start and not np.any(samples[start:end]):silent+=1;reasons.append('word_span_is_digital_silence')
+            if reasons:
+                flags.append({'segment_index':si,'word_index':wi,'text':word['text'],
+                              'start_s':word['start_s'],'end_s':word['end_s'],'reasons':reasons})
+    return {'inference_performed':origin=='local_faster_whisper',
+            'digital_silence_gate':origin=='local_signal_gate',
+            'low_probability_word_count':low,'digital_silence_word_count':silent,
+            'segments_without_word_timings':missing,'flagged_word_count':len(flags),
+            'flags':flags[:20],'flags_truncated':len(flags)>20,
+            'note':'Flags help listening review. Model probabilities are not calibrated accuracy scores; no flags does not verify words or pronunciation.'}
+
+
 def check(record,expected_text,max_edits=50):
     if not isinstance(expected_text,str) or not 1<=len(expected_text)<=20000:
         raise ValueError('Expected text must contain 1 to 20000 characters.')
@@ -111,7 +133,9 @@ def check(record,expected_text,max_edits=50):
             edits.append({'type':'addition','observed':observed[j],'observed_token_index':j,'audio_span':spans[j]})
     edits.reverse();total=sum(counts.values())
     return {'transcript_id':record['transcript_id'],'origin':record['origin'],
-            'comparison_basis':'ASR hypothesis' if record['audio_processed'] else 'user-supplied text only; audio not verified',
+            'comparison_basis':('signal-only digital silence review; no ASR hypothesis' if record['origin']=='local_signal_gate' else
+                                'ASR hypothesis' if record['audio_processed'] else 'user-supplied text only; audio not verified'),
+            'transcript_review':record.get('review'),
             'expected_token_count':n,'observed_token_count':m,**counts,'edit_count':total,
             'word_error_rate':round(total/n,5),'edits':edits[:max_edits],'edits_truncated':len(edits)>max_edits,
             'normalization':'Unicode NFKC, casefold, punctuation-separated tokens; no inferred homophones or number expansion.',

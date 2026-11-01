@@ -1,4 +1,10 @@
-# Fusionify Audio Intelligence v0.6
+# Fusionify Audio Intelligence v0.6.1
+
+## v0.6.1 real local speech verification
+
+Exercise actual local Whisper inference on known-script synthetic narration, silence and speech with a music bed, without uploading audio. Keep model acquisition an explicit operator setup action outside tools. Pass bounded finite 16 kHz mono float PCM into the backend so ASR cannot re-decode media through a dependency-specific PyAV API. Preserve origin and timestamp uncertainty. Add a reproducible opt-in local-model smoke script; ordinary offline CI must not download model weights. Record the exact model revision, synthetic source, measured results and limits without presenting a small synthetic test as Indonesian/remix accuracy validation.
+
+For exact all-zero PCM, skip model inference and persist an empty transcript with explicit local_signal_gate origin and inference_performed=false. This gate is not voice activity detection and must not remove quiet nonzero speech. Retain ordinary ASR hypotheses, add bounded listening-review flags for low model word probabilities and word spans on digital silence, and carry those flags into script comparison. Scores are uncalibrated, not accuracy guarantees; no flags is not verification.
 
 ## v0.6 voice and script review contract
 

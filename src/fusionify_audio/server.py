@@ -86,6 +86,7 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
 
         Requires installed speech extra and operator FAI_WHISPER_MODEL_DIR. No automatic download
         or external audio upload. Transcript and word times are estimates, especially over music.
+        Exact all-zero PCM skips inference with local_signal_gate origin. Inspect result.review flags.
         """
         return service.transcribe_audio(analysis_id,language)
 
@@ -99,7 +100,11 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
 
     @mcp.tool(annotations=read)
     def get_transcript(transcript_id: str, offset: StrictInt=0, limit: StrictInt=50, include_words: bool=False) -> dict:
-        """Read a paginated transcript with origin and limitations. Enable words for estimated word times."""
+        """Read a paginated transcript with origin, listening-review flags and limitations.
+
+        Enable words for estimated word times. Low model scores are not calibrated accuracy;
+        no flags is not verified speech. Signal-gated digital silence explicitly records no inference.
+        """
         return service.get_transcript(transcript_id,offset,limit,include_words)
 
     @mcp.tool(annotations=read)

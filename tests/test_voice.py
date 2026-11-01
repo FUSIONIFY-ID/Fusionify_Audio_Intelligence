@@ -173,18 +173,58 @@ class LocalSpeechTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
             for name in ('model.bin','config.json','tokenizer.json'):(root/name).write_text('{}')
+            audio=root/'audio.wav';wavfile.write(audio,16000,np.full(16000,.1,dtype='float32'))
             fake=SimpleNamespace(start=0.,end=1.,text='halo',words=[SimpleNamespace(start=0.,end=1.,word='halo',probability=.8)])
             from unittest.mock import MagicMock
             backend=MagicMock();backend.return_value.transcribe.return_value=([fake],SimpleNamespace(language='id'))
             with patch.dict('sys.modules',{'faster_whisper':SimpleNamespace(WhisperModel=backend)}),patch.dict(os.environ,{},clear=False):
-                speech.worker(str(root),'audio.wav',str(root/'out.json'),'id')
+                speech.worker(str(root),str(audio),str(root/'out.json'),'id')
                 self.assertTrue(backend.call_args.kwargs['local_files_only'])
                 self.assertEqual(os.environ['HF_HUB_OFFLINE'],'1')
                 self.assertFalse(backend.return_value.transcribe.call_args.kwargs['vad_filter'])
+                samples=backend.return_value.transcribe.call_args.args[0]
+                self.assertIsInstance(samples,np.ndarray)
+                self.assertEqual(samples.dtype,np.float32)
+                self.assertEqual(len(samples),16000)
                 self.assertEqual(json.loads((root/'out.json').read_text())['language'],'id')
+                for rate,data in [(22050,np.zeros(16000,dtype='float32')),
+                                  (16000,np.zeros((16000,2),dtype='float32')),
+                                  (16000,np.full(16000,np.nan,dtype='float32'))]:
+                    wavfile.write(audio,rate,data)
+                    with self.assertRaises(ValueError):speech.worker(str(root),str(audio),str(root/'out.json'),'id')
             (root/'tokenizer.json').unlink()
             with patch.dict(os.environ,{'FAI_WHISPER_MODEL_DIR':tmp}):
                 with self.assertRaises(ValueError):speech.model_directory()
+
+    def test_digital_silence_gate_is_explicit_and_does_not_load_model(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for name in ('model.bin','config.json','tokenizer.json'):(root/name).write_text('{}')
+            audio=root/'zero.wav';wavfile.write(audio,16000,np.zeros(16000,dtype='float32'))
+            with patch.dict(os.environ,{},clear=False),patch.dict('sys.modules',{'faster_whisper':None}):
+                speech.worker(str(root),str(audio),str(root/'out.json'),'auto')
+            result=json.loads((root/'out.json').read_text())
+            self.assertEqual(result,{'segments':[],'language':None,'processing_method':'digital_silence_gate'})
+            report=transcript.review_hypothesis([],np.zeros(SR),'local_signal_gate')
+            self.assertFalse(report['inference_performed']);self.assertTrue(report['digital_silence_gate'])
+            r=record([]);r.update(origin='local_signal_gate',audio_processed=True,review=report)
+            check=transcript.check(r,'halo')
+            self.assertIn('no ASR hypothesis',check['comparison_basis']);self.assertEqual(check['omissions'],1)
+
+    def test_listening_flags_are_bounded_and_do_not_rewrite_words(self):
+        words=[{'start_s':i/10,'end_s':(i+1)/10,'text':'kata','probability':.1} for i in range(25)]
+        segments=[row(' '.join('kata' for _ in words),words=words,end=2.5)]
+        report=transcript.review_hypothesis(segments,np.zeros(SR*3),'local_faster_whisper')
+        self.assertEqual(report['low_probability_word_count'],25)
+        self.assertEqual(report['digital_silence_word_count'],25)
+        self.assertEqual(len(report['flags']),20);self.assertTrue(report['flags_truncated'])
+        r=record(segments,True);r['review']=report
+        checked=transcript.check(r,' '.join('kata' for _ in words))
+        self.assertEqual(checked['edit_count'],0)
+        self.assertEqual(checked['transcript_review']['flagged_word_count'],25)
+        self.assertEqual(r['segments'][0]['words'],words)
+        # Nonzero quiet samples must not be declared digital silence.
+        self.assertEqual(transcript.review_hypothesis(segments,np.full(SR*3,1e-10),'local_faster_whisper')['digital_silence_word_count'],0)
 
 
 if __name__=='__main__':unittest.main()

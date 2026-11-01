@@ -4,7 +4,7 @@
 
 Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## What v0.6 does
+## What v0.6.1 does
 
 | Capability | Implementation |
 | --- | --- |
@@ -37,7 +37,9 @@ Automatic beat markers are estimates. An energy rise is a transition candidate, 
 
 v0.3 adds explicit tempo maps for known changes. Map BPM and first-beat positions are user directions, separate from the original global BPM measurement. Snapped points retain measured-onset provenance; unmatched grid points remain user-specified. This does not change audio speed or automatically detect variable tempo.
 
-Voice/script tools are available through MCP and the authenticated API. See [voice and script review](docs/voice-review.md) for a complete example and optional offline ASR setup. Pitch from mixed music cannot be attributed to a vocalist; text agreement is not a pronunciation score. Local ASR contract tests are mocked because no real Whisper model is bundled.
+Voice/script tools are available through MCP and the authenticated API. See [voice and script review](docs/voice-review.md) for a complete example and optional offline ASR setup. Pitch from mixed music cannot be attributed to a vocalist; text agreement is not a pronunciation score. Base ASR contract tests use mocks; an opt-in real local-model smoke script covers synthetic narration, digital silence, music beds and an actual MCP call flow. No Whisper weights are bundled.
+
+v0.6.1 fixes a real decoder compatibility failure by passing verified PCM directly into ASR. Exact digital silence skips inference with explicit provenance. Estimated words receive bounded listening-review flags; no flag is a correctness verdict. See the [recorded local-model test results](docs/verification.md#real-local-model-check-v061).
 
 ## Quick start: local CLI
 

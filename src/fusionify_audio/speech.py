@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+import numpy as np
 from scipy.io import wavfile
 from scipy.signal import resample_poly
 from .transcript import language_code
@@ -48,9 +49,20 @@ def worker(model,audio,output,language):
     # Recheck required local files immediately before constructing the backend.
     os.environ['FAI_WHISPER_MODEL_DIR']=model
     path=model_directory()
+    # Input is the bounded intermediate created by transcribe(), not arbitrary media.
+    # Array input avoids a second decoder and PyAV API/version differences.
+    if Path(audio).stat().st_size>16000*180*4+4096:
+        raise ValueError('Intermediate speech PCM exceeds its size limit.')
+    rate,samples=wavfile.read(audio)
+    if rate!=16000 or samples.ndim!=1 or samples.dtype!=np.float32 or not 800<=len(samples)<=16000*180 or not np.isfinite(samples).all():
+        raise ValueError('Intermediate speech PCM must be finite 16 kHz mono float32, 0.05 to 180 seconds.')
+    if not np.any(samples):
+        Path(output).write_text(json.dumps({'segments':[],'language':None if language=='auto' else language,
+            'processing_method':'digital_silence_gate'}),encoding='utf-8')
+        return
     from faster_whisper import WhisperModel
     backend=WhisperModel(str(path),device='cpu',compute_type='int8',cpu_threads=2,num_workers=1,local_files_only=True)
-    segments,info=backend.transcribe(audio,language=None if language=='auto' else language,
+    segments,info=backend.transcribe(samples,language=None if language=='auto' else language,
                                    word_timestamps=True,vad_filter=False,beam_size=5,condition_on_previous_text=False)
     rows=[];chars=0;words_total=0
     for s in segments:
@@ -61,7 +73,8 @@ def worker(model,audio,output,language):
         if len(rows)>=500 or chars>40000 or words_total>5000:raise ValueError('Transcript limit exceeded.')
         if s.end>s.start and s.text.strip():
             rows.append({'start_s':s.start,'end_s':s.end,'text':s.text,'words':words})
-    Path(output).write_text(json.dumps({'segments':rows,'language':info.language},ensure_ascii=False,allow_nan=False),encoding='utf-8')
+    Path(output).write_text(json.dumps({'segments':rows,'language':info.language,
+        'processing_method':'local_faster_whisper'},ensure_ascii=False,allow_nan=False),encoding='utf-8')
 
 
 if __name__=='__main__':worker(*sys.argv[1:])

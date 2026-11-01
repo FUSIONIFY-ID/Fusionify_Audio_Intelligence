@@ -1,10 +1,31 @@
-# Verification notes for v0.6
+# Verification notes for v0.6.1
+
+## Real local-model check v0.6.1
+
+A real local run exposed a decoder failure: faster-whisper 1.2.1 called PyAV with `metadata_errors`, rejected by PyAV 19.0.2. v0.6.1 passes bounded, validated 16 kHz mono float32 arrays directly to the backend. No PyAV re-decoding is required for inference. The runtime tested was Python 3.12.14, faster-whisper 1.2.1, CTranslate2 4.8.4 and NumPy 2.5.4, on CPU/int8 with two threads.
+
+Model: [Systran/faster-whisper-tiny](https://huggingface.co/Systran/faster-whisper-tiny/tree/d90ca5fe260221311c53c58e660288d3deb8d356), revision `d90ca5fe260221311c53c58e660288d3deb8d356`. The 75,538,270-byte model.bin was verified against the publisher's LFS SHA-256 `dcb76c6586fc06cbdac6dd21f14cfd129cc4cdd9dce19bf4ffa62e59cbe6e6d1`. Weights were prepared separately for operator QA, not downloaded by an application MCP tool or committed to the repository.
+
+The source is FFmpeg libflite `slt` reading the 13-word English script embedded in `tests/local_speech_smoke.py`. Beds combine synthetic tones and a pulse, scaled relative to narration RMS. Actual observed results:
+
+| Fixture | Duration | Script differences | Low-probability word flags |
+| --- | --- | --- | --- |
+| Clean narration | 4.70503 s | 1 substitution, test → cast, WER 0.07692 | 1 |
+| Bed at 0.125 × narration RMS | 4.70503 s | 1 substitution, test → cast, WER 0.07692 | 1 |
+| Bed at equal narration RMS | 4.70503 s | 0 edits on this sample | 1 |
+| Exact digital silence | 5 s | Empty transcript, inference bypassed | 0 |
+
+Raw ASR initially hallucinated “You” on the all-zero fixture, with word probability about 0.019. The new exact-zero gate returns `local_signal_gate` provenance with no inference. It does not filter quiet nonzero audio or establish that arbitrary noise has no speech. Low model probabilities and exact-zero word spans generate bounded listening flags; they do not rewrite text or establish errors. On the clean fixture, the low-probability word was “timing”, while the actual script difference was “cast”. This demonstrates why a confidence flag cannot substitute for script comparison.
+
+The three narration cases exported subtitles against a project starting at source second 1 for two seconds, checking all exported cue bounds and reporting crossing-word omissions. The opt-in script also runs actual local-model transcription, persistent job polling, script comparison and SRT export through MCP stdio. Timings remain estimates: no phoneme-alignment ground truth, Indonesian voice, human narrator, singing or real remix benchmark was evaluated. The equal-bed case does not imply that adding louder music improves recognition.
+
+Two additional regression tests (48 total) verify digital-silence provenance/no model construction, bounded review flags and preservation of hypotheses. The existing backend-construction test now verifies array input and rejects invalid rate, channel count and nonfinite PCM. Default CI does not fetch model weights; repeat real QA explicitly with the opt-in script and a compatible local model.
 
 ## v0.6 voice/script review
 
 Nine added tests (46 total) cover known synthetic rising/falling/level pitch, noise/silence, quiet gaps, full-scale review flags, mixed-source attribution, strict transcripts, Unicode alignment, omissions/additions/substitutions, missing-word timestamps, comparison bounds, subtitle escaping, trim/offset semantics, source mismatches, persistence, pagination, mocked ASR queue results/cancellation and offline backend construction. Stdio and real TCP HTTP smoke scripts exercise the new voice/transcript tools and project-relative subtitle download. MCP exposes 36 tools; three companion skills are updated.
 
-The optional faster-whisper package was installed and its real WhisperModel class imported successfully. Local ASR model construction and inference responses in tests are mocked. No real Whisper model was available in the development workspace; transcription quality, word timing quality and actual model/runtime compatibility remain unverified. Configuration flags only establish readiness to attempt. Synthetic pitch checks do not prove real vocal intonation accuracy, especially in mixed music. No pronunciation/emotion scoring or automatic correction is implemented. Subtitle sidecars are exported, not burned into the video.
+The optional faster-whisper package was installed and its real WhisperModel class imported successfully. Local ASR model construction and inference responses in tests are mocked. At the initial v0.6 release no real model had been tested; the limited v0.6.1 local-model checks above now supplement these mocked tests. General transcription and word-alignment quality remain unverified. Configuration flags only establish readiness to attempt. Synthetic pitch checks do not prove real vocal intonation accuracy, especially in mixed music. No pronunciation/emotion scoring or automatic correction is implemented. Subtitle sidecars are exported, not burned into the video.
 
 ## Locked cues and targeted review
 
@@ -24,7 +45,7 @@ Advanced v0.4 direction is currently through MCP/CLI. Existing console controls 
 
 ## Backend and protocol checks
 
-The automated suite covers 46 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (36 tools total).
+The automated suite covers 48 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (36 tools total).
 
 Waveform/MP3 and image/video montage outputs are decoded and probed, including short video looping and music in-points. Audio correlation checks use a known synthetic source; they do not establish perceptual alignment for every musical style. A package build also verifies the HTML/CSS/JS console is included in the wheel.
 

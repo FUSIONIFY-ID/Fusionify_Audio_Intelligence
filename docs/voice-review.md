@@ -30,9 +30,9 @@ uv run --frozen --extra speech fusionify-audio serve
 
 Use `serve-http` with the same extra for HTTP mode and preserve its documented auth settings. For Claude Code's `.mcp.json` or generated Desktop config, add `--extra`, `speech` after `--frozen` in the actual uv args. Export the model directory in the launching process. Default plugin commands load only base dependencies.
 
-The directory must already contain `model.bin`, `config.json`, `tokenizer.json` and any other files required by the selected converted CTranslate2 Whisper model. Obtain compatible model files separately from a trusted distributor and follow their license. Tools cannot choose a model name, download files, set model paths, or supply executable code. The adapter requires a local directory and local tokenizer, sets offline Hugging Face flags, loads with `local_files_only=True`, and disables optional VAD model loading. It runs on CPU/int8 with two threads in a subprocess, one shared queue worker, and a 180-second deadline. Slow/large models may time out. Cancellation kills the inference process. The adapter returns a sanitized failure, not backend file paths.
+The directory must already contain `model.bin`, `config.json`, `tokenizer.json` and any other files required by the selected converted CTranslate2 Whisper model. Obtain compatible model files separately from a trusted distributor and follow their license. Tools cannot choose a model name, download files, set model paths, or supply executable code. The adapter requires a local directory and local tokenizer, sets offline Hugging Face flags, loads with `local_files_only=True`, and disables optional VAD model loading. It runs on CPU/int8 with two threads in a subprocess, one shared queue worker, and a 180-second deadline. Slow/large models may time out. Cancellation kills the inference process. The adapter returns a sanitized failure, not backend file paths. The backend receives validated 16 kHz float32 PCM arrays instead of invoking another media decoder.
 
-The implementation follows the [official faster-whisper usage](https://github.com/SYSTRAN/faster-whisper#usage) and [local loading/word timestamp API](https://github.com/SYSTRAN/faster-whisper/blob/master/faster_whisper/transcribe.py). A configured directory only means ready to attempt, not a validated model. Repository ASR tests use a mocked backend; no real model is bundled or inference-quality claim made.
+The implementation follows the [official faster-whisper usage](https://github.com/SYSTRAN/faster-whisper#usage) and [local loading/word timestamp API](https://github.com/SYSTRAN/faster-whisper/blob/master/faster_whisper/transcribe.py). A configured directory only means ready to attempt, not a validated model. Unit ASR contract tests use a mocked backend. An opt-in real-model smoke run is described below; no model is bundled and its small synthetic results do not establish general accuracy.
 
 ## Script review example
 
@@ -61,3 +61,17 @@ Alignment uses Unicode NFKC, case folding and punctuation-separated word tokens.
 ## Subtitle timing
 
 SRT/VTT exports are escaped plain text. Passing project_id verifies the original audio hash and shifts source times onto the saved project's music range. A crossing segment needs complete in-range timed words; otherwise it is omitted with a count. Words that themselves cross a trim are omitted. Review such omissions before publishing. Exports do not alter a saved project or burn captions into the video. JSON exports preserve source times and cannot take project_id.
+
+## Local-model QA and listening flags
+
+With an already prepared model directory, run:
+
+```bash
+uv run --frozen --extra speech python tests/local_speech_smoke.py --output /tmp/fusionify-speech-report.json
+```
+
+This opt-in script never downloads weights or sends audio externally. It requires FFmpeg with libflite, synthesizes a known English script locally, tests clean narration, exact silence and two synthetic music-bed levels, compares the script, checks project-relative subtitle bounds, and completes a real MCP stdio transcription/check/export flow. The output records versions and the model file hash. Ordinary CI uses synthetic/mocked unit tests and does not download weights. See [verification notes](verification.md#real-local-model-check-v061) for the tested model revision and observed mistakes.
+
+Transcripts and completed jobs now carry `review`, also exposed as `transcript_review` during script comparison. It flags model word probabilities below 0.5 and estimated word spans containing only exact digital zeros. These are navigation aids, not calibrated accuracy scores. Only the first 20 flagged words are returned with full counts; paginate transcript words for further inspection. Hypotheses remain unchanged. A model can assign a high score to an incorrect word or a low score to a correct one.
+
+An entirely all-zero PCM input bypasses inference and produces no words, with `origin: local_signal_gate`, `audio_processed: true`, and `review.inference_performed: false`. This avoids hallucinating text on digital silence. It is not VAD: quiet nonzero speech, room noise, instruments and ordinary silent-looking passages still need review. Imported transcripts remain text-only and have no automatically measured review flags.

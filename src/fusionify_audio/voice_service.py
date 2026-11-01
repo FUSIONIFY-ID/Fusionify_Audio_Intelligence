@@ -24,16 +24,18 @@ class VoiceTools:
                 'totals':{k:len(row[k]) for k in arrays},
                 'next_offset':end if end<max(len(row[k]) for k in arrays) else None}
 
-    def _save_transcript(self,analysis_id,segments,language,origin):
+    def _save_transcript(self,analysis_id,segments,language,origin,review=None):
         report=self.record(analysis_id)['report']
         rows=transcript.validate_segments(segments,report['duration_s'])
         language=transcript.language_code(language);tid=uuid.uuid4().hex
         row={'transcript_id':tid,'analysis_id':analysis_id,'source_sha256':report['source']['sha256'],
              'duration_s':report['duration_s'],'language':language,'origin':origin,
-             'audio_processed':origin=='local_faster_whisper','created_at':time.time(),
+             'audio_processed':origin in ('local_faster_whisper','local_signal_gate'),'created_at':time.time(),
              'time_reference':'seconds from source start','segments':rows,
-             'limitations':['Imported text is not acoustically verified.' if origin=='user_supplied' else
-                            'ASR words and timestamps are estimates; inspect original audio.']}
+             'limitations':[{'user_supplied':'Imported text is not acoustically verified.',
+                             'local_signal_gate':'Exact digital silence: no ASR inference was run. Ordinary noise/quiet speech is not filtered by this gate.',
+                             'local_faster_whisper':'ASR words and timestamps are estimates; inspect original audio.'}[origin]]}
+        if review is not None:row['review']=review
         self.store.put('transcript',tid,row)
         return row
 
@@ -50,10 +52,14 @@ class VoiceTools:
             _,y=self._verified_audio(analysis_id);progress(.1)
             result=speech.transcribe(y,language,output,cancel)
             if cancel.is_set():raise ValueError('Transcription cancelled.')
-            row=self._save_transcript(analysis_id,result['segments'],result['language'],'local_faster_whisper')
+            from .transcript import review_hypothesis
+            origin='local_signal_gate' if result.get('processing_method')=='digital_silence_gate' else 'local_faster_whisper'
+            rows=transcript.validate_segments(result['segments'],self.record(analysis_id)['report']['duration_s'])
+            review=review_hypothesis(rows,y,origin)
+            row=self._save_transcript(analysis_id,rows,result['language'],origin,review)
             output.write_text(json.dumps(row,ensure_ascii=False,allow_nan=False),encoding='utf-8')
             return {'transcript_id':row['transcript_id'],'segment_count':len(row['segments']),
-                    'origin':row['origin'],'language':row['language']}
+                    'origin':row['origin'],'language':row['language'],'review':review}
         return self._queue('local-transcription',{'analysis_id':analysis_id,'language':language},worker,suffix='json')
 
     def get_transcript(self,transcript_id: str,offset: int=0,limit: int=50,include_words: bool=False) -> dict:

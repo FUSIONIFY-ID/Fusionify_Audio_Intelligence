@@ -56,7 +56,7 @@ class Service(VoiceTools):
     def workspace(self) -> dict:
         from .semantic import availability
         from .speech import availability as speech_availability
-        return {'version':'0.6.0','mode':'single-owner workspace','upload_url':self.upload_url,
+        return {'version':'0.6.1','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
