@@ -5,6 +5,7 @@ let savedOptions = '', busy = 0, currentJob = null, currentRenderRevision = null
 
 function error(message) { $('error').textContent = message || ''; $('error').hidden = !message; }
 function controls() {
+  $('connect').disabled = busy > 0;
   for (const id of ['choose','save','preview','render']) $(id).disabled = !token || busy > 0 || (['preview','render'].includes(id) && !!currentJob);
   $('cancel').disabled = !currentJob;
 }
@@ -42,7 +43,16 @@ function drawAssets() {
 }
 async function refreshAssets() { assets = (await call('list_media_assets',{limit:100})).assets; drawAssets(); }
 $('connection').addEventListener('submit', event => { event.preventDefault(); run(async () => {
-  if (token) { token=''; generation++; analysis=null; project=null; clearTimeout(pollTimer);currentJob=null;$('connect').textContent='Connect';$('job-status').textContent='Disconnected';return; }
+  if (token) {
+    token='';generation++;analysis=null;project=null;projectAnalysis=null;savedOptions='';
+    clearTimeout(pollTimer);currentJob=null;assets=[];drawAssets();
+    $('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;
+    $('preview-empty').hidden=false;$('download').hidden=true;$('download').removeAttribute('href');
+    $('exports').hidden=true;$('export-link').hidden=true;$('export-link').removeAttribute('href');
+    $('analysis').hidden=true;$('progress').value=0;$('upload-status').textContent='';
+    $('project-status').textContent='Project not saved yet. No render yet.';
+    $('connect').textContent='Connect';$('job-status').textContent='Disconnected';return;
+  }
   token = $('token').value.trim(); $('token').value = '';
   if (!token) throw new Error('Enter the workspace token supplied by your server operator.');
   try { await call('get_workspace'); await refreshAssets(); $('connect').textContent = 'Disconnect'; }

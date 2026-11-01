@@ -39,6 +39,7 @@ class HTTPTests(unittest.TestCase):
                     self.assertIn('Your music. Your next edit.',client.get('/').text)
                     self.assertIn("script-src 'self'",client.get('/').headers['content-security-policy'])
                     self.assertEqual(client.post('/api/call',json={}).status_code,401)
+                    self.assertEqual(client.post('/api/call',headers=[(b'authorization',b'\xff')],json={}).status_code,401)
                     headers={'Authorization':'Bearer '+TOKEN}
                     self.assertEqual(client.post('/api/call',headers={**headers,'Origin':'https://evil.example'},json={}).status_code,403)
                     wav=io.BytesIO();wavfile.write(wav,SR,click_track(128,3))

@@ -47,3 +47,41 @@ jobs:
           name: creator-ui-qa
           path: ${{ runner.temp }}/fai-ui-artifacts
           retention-days: 1
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t fusionify-audio:test .
+      - name: Validate compose and authenticated container
+        shell: bash
+        run: |
+          export FAI_API_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+          export FAI_PUBLIC_BASE_URL=http://127.0.0.1:8000
+          docker compose config --quiet
+          docker run -d --name fai-qa --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+            --mount type=volume,dst=/data/media --mount type=volume,dst=/data/state \
+            -e FAI_API_TOKEN -e FAI_PUBLIC_BASE_URL -p 127.0.0.1:8000:8000 fusionify-audio:test
+          python - <<'PY'
+          import json, os, time, urllib.request, urllib.error
+          for _ in range(100):
+              try:
+                  if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status == 200:
+                      break
+              except (urllib.error.URLError, OSError):
+                  time.sleep(.2)
+          else:
+              raise RuntimeError('Container startup timeout')
+          data=json.dumps({'operation':'get_workspace','arguments':{}}).encode()
+          request=urllib.request.Request('http://127.0.0.1:8000/api/call', data=data, headers={
+              'Content-Type':'application/json','Authorization':'Bearer '+os.environ['FAI_API_TOKEN']})
+          result=json.load(urllib.request.urlopen(request, timeout=5))
+          assert result['version']=='0.2.0', result
+          print('PASS: non-root read-only container, compose configuration and authenticated workspace')
+          PY
+      - name: Container diagnostics
+        if: failure()
+        run: docker logs fai-qa || true
+      - name: Cleanup container
+        if: always()
+        run: docker rm -fv fai-qa || true

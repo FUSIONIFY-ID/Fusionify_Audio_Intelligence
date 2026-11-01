@@ -65,8 +65,8 @@ class AccessBoundary:
         headers={k.lower():v for k,v in scope['headers']}
         path=scope.get('path','')
         if path.startswith('/api/') or path=='/mcp' or path.startswith('/mcp/'):
-            value=headers.get(b'authorization',b'').decode('latin1')
-            expected='Bearer '+self.token
+            value=headers.get(b'authorization',b'')
+            expected=('Bearer '+self.token).encode('ascii')
             if not secrets.compare_digest(value,expected):
                 response=JSONResponse({'error':'Authentication required.'},status_code=401,headers={'WWW-Authenticate':'Bearer'})
                 return await response(scope,receive,send)
