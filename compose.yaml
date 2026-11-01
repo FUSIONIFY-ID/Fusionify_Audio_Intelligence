@@ -1,0 +1,25 @@
+services:
+  audio:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      FAI_API_TOKEN: ${FAI_API_TOKEN:?Generate and configure a workspace token}
+      FAI_PUBLIC_BASE_URL: ${FAI_PUBLIC_BASE_URL:?Set the public HTTPS origin}
+      FAI_IMPORT_HOSTS: ${FAI_IMPORT_HOSTS:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      FAI_GEMINI_MODEL: ${FAI_GEMINI_MODEL:-}
+    volumes:
+      - media:/data/media
+      - state:/data/state
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 2g
+    cpus: 2
+volumes:
+  media:
+  state:

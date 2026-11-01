@@ -30,7 +30,9 @@ async def main():
             async with ClientSession(read,write) as session:
                 await session.initialize()
                 names={t.name for t in (await session.list_tools()).tools}
-                assert names=={'analyze_audio','get_audio_timeline','create_edit_plan','render_visualizer','get_job_status'},names
+                assert {'analyze_audio','get_audio_timeline','create_edit_plan','render_visualizer','get_job_status',
+                        'create_video_project','revise_video_project','render_video_project','export_video_timeline',
+                        'cancel_render_job','correct_beat_markers','import_media_url'}.issubset(names),names
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
                 assert report['duration_s']==3
                 aid=report['analysis_id']
@@ -45,7 +47,7 @@ async def main():
                     await asyncio.sleep(.25)
                 assert state['status']=='completed',state
                 assert Path(state['output_path']).is_file()
-                print('PASS: MCP stdio initialize, five tools, real analysis, offset plan, render and job polling.')
+                print(f'PASS: MCP stdio initialize, {len(names)} tools, real analysis, offset plan, render and job polling.')
 
 
 if __name__=='__main__':asyncio.run(main())

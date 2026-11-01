@@ -2,45 +2,48 @@
 
 **Your music. Your visual direction.**
 
-Alat analisis musik dan timing video untuk Claude melalui MCP dan Agent Skills. Fokus awal: JJ, remix, dan konten yang mengikuti musik dari file pengguna.
+Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## Status v0.1
+## What v0.2 does
 
-| Kemampuan | Status |
+| Capability | Implementation |
 | --- | --- |
-| Analisis file MP3/WAV/FLAC/OGG/M4A lokal | Implemented |
-| Estimasi tempo, kandidat beat, energi dan kenaikan energi | Implemented; hasil perlu ditinjau |
-| Rencana penanda edit sesuai rentang musik | Implemented |
-| Render waveform vertikal dengan soundtrack asli | Implemented; template tetap |
-| MCP stdio untuk Desktop / Code | Implemented; uji protokol tersedia |
-| Plugin dan skill Claude Code | Disediakan; perlu validasi pada aplikasi Claude pengguna |
-| Konektor Claude web / remote HTTPS | Planned; belum ada endpoint aktif |
-| Editing foto/video bebas dan footage generatif | Planned |
-| Pemahaman genre, mood, lirik dan instrumen oleh model audio | Planned |
+| Real audio analysis | Duration, global pulse estimate, local tempo windows, beat candidates, energy rises, RMS/peak and spectral measurements |
+| Timing review | Full-length click preview, waveform SVG, JSON analysis, manual beat corrections retained as a new analysis |
+| Media inputs | Local files, authenticated browser uploads, restricted direct HTTPS imports |
+| Video projects | Persistent projects, revision checks, title/caption, music range, asset selection, motion strength, cover/contain, explicit scene overrides |
+| Montage rendering | User photos and MP4/MOV clips, original soundtrack, fixed cut/zoom/pan/shake effects |
+| Styles | JJ/remix, cinematic, product promo, minimal; low/medium/high intensity |
+| Output | 9:16, 16:9, 1:1; short side 480/720/1080 pixels; explicit preview or full project render |
+| Render management | Bounded queue, progress, cancellation, persistent results, interrupted-job recovery |
+| Timeline exports | Project JSON and CSV scene markers |
+| Claude integration | Stdio MCP, authenticated Streamable HTTP MCP, Claude Code plugin and three companion skills |
+| Creator console | Token-gated upload, audio analysis, project settings, render preview and download |
+| Optional music interpretation | Gemini adapter for mood/texture/visual suggestions; explicit external-processing agreement and operator credentials required |
 
-Skill tidak memproses suara sendiri. Mesin DSP membaca audio lalu memberi Claude data bertimestamp. Estimasi beat tidak menjamin timing benar untuk setiap jenis musik. v0.1 memakai satu estimasi tempo global; musik dengan tempo berubah memerlukan pemeriksaan manual.
+The core engine uses DSP and runs without a paid model API. The optional Gemini adapter is separately enabled and has mocked contract tests; live provider behavior requires a real configured account and is not claimed by those tests.
 
-## Persiapan
+Automatic beat markers are estimates. An energy rise is a transition candidate, not a confirmed musical drop. Local tempo windows aid inspection; the current beat grid still uses a global estimate and may miss tempo-changing passages. No claim of perfect alignment for every song.
 
-Pasang **Python 3.11+**, **uv**, serta **FFmpeg dan ffprobe** di PATH. Gunakan folder khusus berisi musik yang boleh diproses. Batas awal: 180 detik dan 64 MiB per file.
+## Quick start: local CLI
+
+Install Python 3.11+, [uv](https://docs.astral.sh/uv/), FFmpeg and ffprobe. Then:
 
 ```bash
 git clone https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence.git
 cd Fusionify_Audio_Intelligence
-uv sync
+uv sync --frozen
 uv run fusionify-audio doctor
 ```
 
-Perintah tidak memerlukan API key atau model berbayar untuk DSP/visualizer lokal. Dependency Python tetap perlu diunduh saat pemasangan pertama.
-
-## Uji CLI
-
-macOS/Linux, ganti folder dan nama file sesuai komputer:
+macOS/Linux:
 
 ```bash
-export FAI_MEDIA_ROOT="/absolute/path/to/music"
+export FAI_MEDIA_ROOT="/absolute/path/to/music-and-visuals"
 uv run fusionify-audio analyze "track.mp3"
-uv run fusionify-audio plan ANALYSIS_ID
+uv run fusionify-audio profile ANALYSIS_ID
+uv run fusionify-audio create-project ANALYSIS_ID
+uv run fusionify-audio render-project PROJECT_ID
 ```
 
 PowerShell:
@@ -50,76 +53,119 @@ $env:FAI_MEDIA_ROOT = 'C:\Users\you\Music'
 uv run fusionify-audio analyze 'track.mp3'
 ```
 
-Analisis disimpan lokal di `~/.fusionify-audio` secara default. Atur `FAI_STATE_ROOT` atau `--state-root` untuk memindahkannya. Setiap analisis menghasilkan ID baru. Render memverifikasi hash sumber agar analisis lama tidak diterapkan ke file yang berubah.
+CLI render commands wait for completion. MCP render tools return a job ID for polling. State defaults to `~/.fusionify-audio`; configure `FAI_STATE_ROOT` to change it. One server process owns each state directory. Use one HTTP server when multiple clients need the same workspace.
 
-## Claude Code
+## Claude Code plugin
 
-Untuk mencoba plugin dari checkout, setelah `FAI_MEDIA_ROOT` tersedia di lingkungan proses Claude:
-
-```bash
-claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
-```
-
-Atau tambahkan katalog repo dari sesi Claude Code setelah repo terisi:
+Set `FAI_MEDIA_ROOT` in the environment from which Claude starts, then:
 
 ```text
 /plugin marketplace add FUSIONIFY-ID/Fusionify_Audio_Intelligence
 /plugin install fusionify-audio-intelligence@fusionify-audio
 ```
 
-Paket menyertakan konfigurasi MCP yang menjalankan `uv`. Pastikan executable tersebut dapat ditemukan oleh aplikasi Claude. Periksa `/mcp` jika tool tidak muncul. Jalankan `claude plugin validate /absolute/path/to/Fusionify_Audio_Intelligence --strict` dengan CLI Claude yang terpasang untuk validasi manifest yang otoritatif.
+Or try a checkout directly:
 
-## Claude Desktop
-
-Tambahkan entri ini ke konfigurasi MCP Desktop. Ganti semua path, termasuk path executable `uv` bila diperlukan. Jangan menimpa entri server lain.
-
-```json
-{
-  "mcpServers": {
-    "fusionify-audio": {
-      "command": "uv",
-      "args": ["run", "--directory", "/absolute/path/to/Fusionify_Audio_Intelligence", "fusionify-audio", "serve"],
-      "env": {"FAI_MEDIA_ROOT": "/absolute/path/to/music"}
-    }
-  }
-}
+```bash
+claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 ```
 
-Skill pendamping berada di `skills/music-driven-video/`. Konfigurasi MCP Desktop sendiri tidak otomatis memasang skill. Pasang skill melalui mekanisme skill yang tersedia pada klienmu bila ingin workflow pendampingnya.
+Skills included:
 
-Contoh permintaan setelah tool terhubung:
+- **music-driven-video:** create, revise, render and export edits.
+- **audio-intelligence:** inspect actual audio, compare measurements and review/correct beat markers.
+- **workspace-setup:** local/remote setup and recovery.
 
-> Analisis track.mp3 dari folder musik yang dikonfigurasi. Ambil durasi penuh, buat rencana edit medium, kemudian render visualizer dengan judul Fusionify. Jelaskan bagian yang timing-nya masih perlu dicek.
+Run `claude plugin validate /absolute/path/to/Fusionify_Audio_Intelligence --strict` for the client CLI's authoritative manifest validation. Repository JSON checks and MCP tests do not substitute for live Claude UI verification.
 
-## Tool MCP
+## Claude Desktop: local MCP
 
-| Tool | Kegunaan |
+Generate a configuration using actual absolute paths:
+
+```bash
+python scripts/configure_client.py --client claude-desktop --media-root /absolute/path/to/media
+```
+
+The script prints JSON by default. To merge a chosen configuration file, add `--write /path/to/config.json`. It preserves other server entries and creates a backup. Replacing an existing Fusionify entry requires `--replace`. Set `--uv-command` to the absolute uv executable if your desktop application cannot find it in PATH.
+
+The generated local MCP config does not itself install skills in Desktop. Use the client's available skill installation mechanism separately.
+
+## HTTP workspace and Claude web
+
+Start a local HTTP workspace:
+
+```bash
+uv run fusionify-audio generate-token
+# Save the generated value securely in FAI_API_TOKEN on your own computer/server.
+export FAI_PUBLIC_BASE_URL="http://127.0.0.1:8000"
+uv run fusionify-audio serve-http
+```
+
+Open `http://127.0.0.1:8000/`, enter the operator-supplied token, and upload music/visuals. The token stays in page memory and is not saved to local/session storage. Copy asset IDs into Claude or create a project through the console.
+
+For a remote connector, deploy behind HTTPS first. Configure:
+
+- URL: your actual `https://your-host/mcp` endpoint.
+- Request header: `Authorization` with value `Bearer YOUR_WORKSPACE_TOKEN`, stored in the client's secret configuration rather than chat.
+- For Claude web/Desktop, use the custom connector interface. If request headers are unavailable in your client/account, use local mode; do not disable server authentication.
+
+No public service is deployed by cloning this repository. A GitHub URL is not an MCP endpoint. See [deployment](docs/deployment.md) for Docker, HTTPS, imports, and client setup.
+
+## Example conversation
+
+> Pakai asset musik ini dan tiga foto yang sudah diupload. Buat JJ vertikal dengan seluruh durasi musik. Jangan terlalu banyak shake. Buat preview dulu, lalu render penuh setelah timing-nya cocok.
+
+Claude can inspect actual timing, create a saved project, choose a preset/intensity, render an explicitly shortened preview, revise the project, then render its full duration. Photo/video montage scenes use the selected soundtrack; original clip audio is muted. Choose cover (center crop) or contain (letterbox); short video clips may loop. Motion strength is independent of cut density. Validated scene overrides support exact image/clip placement without arbitrary filter code. When too few beat candidates are available, editorial fallback cuts are labeled separately from measured beats.
+
+For custom generated footage, create clips with a separate generation tool, register those files, then assemble them here. This repository does not include a text-to-video generation model or arbitrary per-scene code execution.
+
+## MCP tools
+
+| Flow | Tools |
 | --- | --- |
-| `analyze_audio` | Ringkasan dan ID analisis dari path file lokal |
-| `get_audio_timeline` | Kandidat beat/energi pada rentang waktu, dengan batas hasil |
-| `create_edit_plan` | Penanda edit dengan pemetaan waktu sumber ke video |
-| `render_visualizer` | Antrean render template waveform 480×854 dengan musik asli |
-| `get_job_status` | Status render dan path MP4 lokal setelah selesai |
+| Workspace and assets | `get_workspace`, `list_media_assets`, `register_media_asset`, `import_media_url` |
+| Audio | `analyze_audio`, `get_audio_profile`, `get_audio_timeline`, `compare_audio` |
+| Review and correction | `render_beat_preview`, `export_audio_analysis`, `correct_beat_markers` |
+| Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
+| Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
+| Optional provider | `describe_music` |
 
-Satu render aktif per server; riwayat job maksimal 100 per sesi. Restart menghapus status job dari memori; file hasil tetap ada di folder state. Render memakai seluruh sisa musik bila durasi tidak ditentukan. MP4 lokal tidak otomatis menjadi URL download di chat.
+Use `get_workspace` for current capabilities and limits. Ordinary DSP calls never invoke the optional provider. Returned provider descriptions are uncertain interpretations; measured timestamps remain the timing source.
 
-## Claude web dan roadmap
+## Operational limits
 
-Claude web memerlukan remote MCP yang dapat dijangkau melalui internet. Versi ini **belum menyediakan remote MCP**, OAuth, upload pengguna, atau hosted downloads. Jangan memasukkan URL GitHub sebagai URL konektor MCP. Tahap berikutnya: layanan HTTPS terautentikasi, isolasi aset per pengguna, upload, worker render, dan uji lintas klien.
+- Single trusted owner workspace, not a multi-tenant SaaS. Everyone holding its token can access its assets/projects.
+- Per file: 64 MiB; audio/video duration: 180 seconds; image limit: 24 megapixels.
+- At most 16 visual assets per project, four queued/active render jobs and one render worker.
+- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side.
+- Render stages have time limits; completed artifacts persist. Plan storage/cleanup on the host; the application does not automatically delete older user assets or completed work.
+- HTTP artifact links expire after ten minutes. Refresh job status or export again for a new link.
+- URL imports accept direct public HTTPS media files from exact operator-allowlisted hosts. Redirects are revalidated and the resolved public IP is pinned while TLS verifies the hostname. Streaming pages, private networks and subscription bypasses are unsupported.
+- Credentials stay in server/client settings. A chat attachment must be explicitly uploaded or otherwise made accessible to the server.
+- No perceptual ground-truth validation of every musical genre, native CapCut/Premiere project export, or generative footage model is claimed.
 
-## Tes pengembang
+## Tests
 
 ```bash
 uv run python -m unittest discover -s tests -v
 uv run python tests/mcp_smoke.py
+uv run python tests/http_mcp_smoke.py
 ```
 
-Tes memakai audio sintetis; lagu pengguna tidak disertakan dalam repo. Uji sintetis dan protokol tidak menggantikan pemeriksaan sinkronisasi yang didengar manusia.
+Browser integration, on a host that permits Chromium:
 
-## Referensi
+```bash
+npm ci
+npx playwright install --with-deps chromium
+npm run test:e2e
+```
 
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
-- [Claude Code plugins](https://code.claude.com/docs/en/plugins)
-- [Claude remote connectors](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
+Tests cover known synthetic beats, silence, file boundaries, URL destination checks, revisions, persistence, cancellation, authenticated uploads/downloads, real media render/audio-offset checks, and actual stdio/HTTP MCP handshakes. Browser tests exercise connect → upload → analyze → project → montage → export → revision on desktop plus responsive checks. Optional Gemini tests are mocked and send no audio externally. Copyrighted music is not included in fixtures.
 
-Lihat [SPEC.md](SPEC.md) untuk batas versi dan arah pengembangan.
+## References
+
+- [Claude plugin documentation](https://code.claude.com/docs/en/plugins)
+- [Claude custom connectors](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), maintained v1 API used here
+- [Gemini audio understanding](https://ai.google.dev/gemini-api/docs/audio)
+- [Specification](SPEC.md)

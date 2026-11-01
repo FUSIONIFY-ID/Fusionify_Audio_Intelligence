@@ -13,7 +13,7 @@ from scipy import signal
 
 SR, HOP, FFT = 22050, 220, 1024
 MAX_SECONDS, MAX_BYTES = 180, 64 * 1024 * 1024
-DEMUXERS = {".mp3": "mp3", ".wav": "wav", ".flac": "flac", ".ogg": "ogg", ".m4a": "mov"}
+DEMUXERS = {".mp3": "mp3", ".wav": "wav", ".flac": "flac", ".ogg": "ogg", ".m4a": "mov", ".mp4":"mov", ".mov":"mov"}
 
 
 def media_file(root: Path, value: str) -> Path:
@@ -46,7 +46,7 @@ def decode(path: Path) -> tuple[np.ndarray, dict]:
     info = json.loads(checked_run(["ffprobe", *options, "-show_entries", "format=duration:stream=sample_rate,channels", "-of", "json", str(path)]))
     length = info.get("format", {}).get("duration")
     if length is not None and (not math.isfinite(float(length)) or float(length) > MAX_SECONDS):
-        raise ValueError("Maximum audio duration is 180 seconds in v0.1.")
+        raise ValueError("Maximum audio duration is 180 seconds.")
     raw = checked_run(["ffmpeg", "-nostdin", *options, "-i", str(path), "-map", "0:a:0", "-t", str(MAX_SECONDS + 1), "-ac", "1", "-ar", str(SR), "-f", "f32le", "pipe:1"])
     y = np.frombuffer(raw, dtype="<f4").copy()
     if len(y) < FFT or len(y) > SR * MAX_SECONDS or not np.all(np.isfinite(y)):
@@ -126,17 +126,39 @@ def measure(y: np.ndarray, sr: int = SR) -> dict:
                        for k in sorted(ps, key=lambda k: rise[k], reverse=True)[:5]
                        if rise[k] > threshold and 1 < energy[int(k)+1]['time_s'] < duration-1]
         transitions.sort(key=lambda x: x['time_s'])
+    power=mag**2
+    mean_power=power.mean(axis=1)
+    total_power=float(mean_power.sum())+1e-12
+    local_tempos=[]
+    for start in np.arange(0,max(0,duration-4),8):
+        segment=env[(times>=start)&(times<start+8)]
+        segment=segment-segment.mean()
+        corr=signal.correlate(segment,segment,mode='full',method='fft')[len(segment)-1:]
+        if len(corr)>int(fps*60/65) and corr[0]>1e-8:
+            ll=np.arange(int(fps*60/210),int(fps*60/65))
+            pp,_=signal.find_peaks(corr[ll])
+            if len(pp):
+                base=tempo or 120
+                weights=corr[ll[pp]]*np.exp(-.5*(np.log2(60*fps/ll[pp]/base)/.4)**2)
+                k=int(ll[pp[np.argmax(weights)]])
+                local_tempos.append({'start_s':round(float(start),3),'end_s':round(min(float(start)+8,duration),3),
+                                     'tempo_bpm_estimate':round(float(60*fps/k),2)})
     return {"duration_s": round(duration, 5), "tempo_bpm_estimate": tempo,
             "pulse_periodicity_score": None if confidence is None else round(confidence, 4),
             "score_note": "Autocorrelation strength; not calibrated detection accuracy.",
             "beats": beats, "energy": energy, "transitions": transitions,
+            "local_tempo_windows":local_tempos,
+            "features":{"rms_dbfs":round(20*math.log10(max(float(np.sqrt(np.mean(y*y))),1e-12)),2),
+                        "peak_dbfs":round(20*math.log10(max(float(np.max(np.abs(y))),1e-12)),2),
+                        "bass_power_ratio":round(float(mean_power[freqs<180].sum())/total_power,4),
+                        "spectral_centroid_hz":round(float((freqs*mean_power).sum())/total_power,1)},
             "semantic_model_used": False, "warnings": warnings}
 
 
 def analyze(path: Path) -> tuple[dict, np.ndarray]:
     y, metadata = decode(path)
     result = measure(y)
-    result.update({"schema_version": "0.1.0", "source": {"filename": path.name,
+    result.update({"schema_version": "0.2.0", "source": {"filename": path.name,
                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest()},
                    "time_reference": "seconds from the beginning of this exact source file",
                    "method": "spectral flux + autocorrelation + onset-aligned pulse fit",

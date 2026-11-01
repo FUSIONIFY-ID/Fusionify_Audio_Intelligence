@@ -1,10 +1,11 @@
 {
   "name": "fusionify-audio",
   "owner": {"name": "FUSIONIFY"},
+  "metadata": {"description": "Music analysis and video creation tools for Claude creators.", "version": "0.2.0"},
   "plugins": [{
     "name": "fusionify-audio-intelligence",
     "source": "./",
-    "description": "Local audio analysis and music-driven visualizer tools for Claude.",
-    "version": "0.1.0"
+    "description": "Music analysis, revisable video projects and authenticated MCP for creators.",
+    "version": "0.2.0"
   }]
 }

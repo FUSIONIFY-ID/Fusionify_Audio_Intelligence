@@ -5,6 +5,9 @@ __pycache__/
 media/
 state/
 dist/
+node_modules/
+test-results/
+*.sqlite3*
 *.mp3
 *.mp4
 *.wav

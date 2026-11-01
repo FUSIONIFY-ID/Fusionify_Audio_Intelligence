@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fusionify Audio Intelligence</title>
+  <link rel="stylesheet" href="/static/app.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">FUSIONIFY <span>Audio Intelligence</span></a>
+    <form id="connection" class="connection">
+      <label class="sr-only" for="token">Workspace token</label>
+      <input id="token" type="password" placeholder="Workspace token" autocomplete="off" spellcheck="false">
+      <button id="connect" type="submit">Connect</button>
+    </form>
+  </header>
+  <main>
+    <section class="intro"><h1>Your music. Your next edit.</h1><p>Upload a soundtrack, choose your visuals, then direct the edit in Claude.</p></section>
+    <p id="error" role="alert" hidden></p>
+    <div class="workspace">
+      <div class="editor">
+        <section aria-labelledby="library-heading">
+          <h2 id="library-heading">Media library</h2>
+          <div id="dropzone" class="dropzone">
+            <p>Drop music, photos or video</p>
+            <button id="choose" type="button">Choose files</button>
+            <input id="files" class="sr-only" type="file" multiple accept=".mp3,.wav,.flac,.ogg,.m4a,.mp4,.mov,.png,.jpg,.jpeg,.webp">
+          </div>
+          <p id="library-empty" class="empty">Your uploaded media will appear here.</p>
+          <ul id="library" class="library"></ul>
+          <p id="upload-status" class="subtle" role="status"></p>
+        </section>
+        <section class="project-section" aria-labelledby="project-heading">
+          <h2 id="project-heading">Edit project</h2>
+          <form id="project-form">
+            <div class="fields">
+              <label>Soundtrack<select id="audio" required><option value="">Select audio</option></select></label>
+              <label>Title<input id="title" value="Your sound. In motion." required maxlength="80"></label>
+              <label>Style<select id="style"><option value="jj">JJ / remix</option><option value="cinematic">Cinematic</option><option value="promo">Product promo</option><option value="minimal">Minimal</option></select></label>
+              <label>Intensity<select id="intensity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+              <label>Aspect ratio<select id="aspect"><option>9:16</option><option>16:9</option><option>1:1</option></select></label>
+              <label>Resolution<select id="resolution"><option value="480">480p</option><option value="720" selected>720p</option><option value="1080">1080p</option></select></label>
+              <label>Music starts at<input id="start" type="number" min="0" step="0.01" value="0"></label>
+              <label>Duration<input id="duration" type="number" min="0.1" max="180" step="0.01" placeholder="Full soundtrack"></label>
+              <label class="full">Caption<input id="caption" placeholder="Optional caption" maxlength="160"></label>
+            </div>
+            <p id="analysis" class="analysis" role="status" hidden></p>
+            <div class="actions"><button id="save" type="button">Save project</button><button id="preview" type="button" class="secondary">Render preview</button><button id="render" type="button">Render full video</button></div>
+          </form>
+          <p id="project-status" class="subtle" role="status">Project not saved yet. No render yet.</p>
+          <div id="exports" class="exports" hidden><button id="export-json" class="text-button" type="button">Export timeline JSON</button><button id="export-csv" class="text-button" type="button">Export markers CSV</button><a id="export-link" hidden>Download export</a></div>
+        </section>
+      </div>
+      <aside class="preview-panel" aria-labelledby="preview-heading">
+        <h2 id="preview-heading">Preview</h2>
+        <div id="viewer" class="viewer"><p id="preview-empty">Your video starts here</p><video id="video" controls playsinline preload="metadata" hidden></video></div>
+        <p id="job-status" role="status">No render yet</p>
+        <progress id="progress" max="1" value="0" aria-label="Render progress"></progress>
+        <div class="result-actions"><button id="cancel" class="secondary" type="button" disabled>Cancel render</button><a id="download" hidden>Download MP4</a></div>
+        <p class="footnote">Timing suggestions need a human ear. Your soundtrack stays yours.</p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

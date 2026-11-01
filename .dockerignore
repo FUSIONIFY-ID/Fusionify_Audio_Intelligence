@@ -1,0 +1,10 @@
+.git
+.venv
+node_modules
+media
+state
+.env
+*.mp3
+*.mp4
+*.wav
+*.npz
