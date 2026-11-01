@@ -1,0 +1,7 @@
+{
+  "fusionify-audio": {
+    "command": "uv",
+    "args": ["run", "--directory", "${CLAUDE_PLUGIN_ROOT}", "fusionify-audio", "serve"],
+    "env": {"FAI_MEDIA_ROOT": "${FAI_MEDIA_ROOT}"}
+  }
+}

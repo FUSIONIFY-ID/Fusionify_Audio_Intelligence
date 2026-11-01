@@ -1,0 +1,10 @@
+{
+  "name": "fusionify-audio",
+  "owner": {"name": "FUSIONIFY"},
+  "plugins": [{
+    "name": "fusionify-audio-intelligence",
+    "source": "./",
+    "description": "Local audio analysis and music-driven visualizer tools for Claude.",
+    "version": "0.1.0"
+  }]
+}
