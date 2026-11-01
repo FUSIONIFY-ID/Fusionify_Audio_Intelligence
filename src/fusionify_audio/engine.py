@@ -143,10 +143,14 @@ def measure(y: np.ndarray, sr: int = SR) -> dict:
                 k=int(ll[pp[np.argmax(weights)]])
                 local_tempos.append({'start_s':round(float(start),3),'end_s':round(min(float(start)+8,duration),3),
                                      'tempo_bpm_estimate':round(float(60*fps/k),2)})
+    # Independent measured onset candidates are available for optional user-grid snapping.
+    onset_peaks, _ = signal.find_peaks(env, prominence=.2, height=.2, distance=max(1, round(.08*fps)))
+    onsets = [{"time_s": round(float(times[k]), 4), "strength": round(float(env[k]), 4),
+               "provenance": "measured_spectral_flux"} for k in onset_peaks]
     return {"duration_s": round(duration, 5), "tempo_bpm_estimate": tempo,
             "pulse_periodicity_score": None if confidence is None else round(confidence, 4),
             "score_note": "Autocorrelation strength; not calibrated detection accuracy.",
-            "beats": beats, "energy": energy, "transitions": transitions,
+            "beats": beats, "onsets": onsets, "energy": energy, "transitions": transitions,
             "local_tempo_windows":local_tempos,
             "features":{"rms_dbfs":round(20*math.log10(max(float(np.sqrt(np.mean(y*y))),1e-12)),2),
                         "peak_dbfs":round(20*math.log10(max(float(np.max(np.abs(y))),1e-12)),2),
@@ -158,7 +162,7 @@ def measure(y: np.ndarray, sr: int = SR) -> dict:
 def analyze(path: Path) -> tuple[dict, np.ndarray]:
     y, metadata = decode(path)
     result = measure(y)
-    result.update({"schema_version": "0.2.0", "source": {"filename": path.name,
+    result.update({"schema_version": "0.3.0", "source": {"filename": path.name,
                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest()},
                    "time_reference": "seconds from the beginning of this exact source file",
                    "method": "spectral flux + autocorrelation + onset-aligned pulse fit",

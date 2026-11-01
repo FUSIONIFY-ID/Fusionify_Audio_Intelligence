@@ -31,6 +31,10 @@ def main():
         parser=sub.add_parser(name);parser.add_argument('job_id')
     export=sub.add_parser('export-project');export.add_argument('project_id');export.add_argument('--format',choices=['json','csv'],default='json')
     beats=sub.add_parser('beat-preview');beats.add_argument('analysis_id');beats.add_argument('--start',type=float,default=0);beats.add_argument('--duration',type=float)
+    beats.add_argument('--click-volume',type=float,default=1)
+    review=sub.add_parser('rhythm-review');review.add_argument('analysis_id')
+    taps=sub.add_parser('tap-tempo');taps.add_argument('times',type=Path,help='JSON array of source-relative tap times')
+    rhythm=sub.add_parser('tempo-map');rhythm.add_argument('analysis_id');rhythm.add_argument('--regions',type=Path,required=True);rhythm.add_argument('--snap',type=float,default=0)
     args=ap.parse_args()
     if args.action=='generate-token':
         import secrets
@@ -55,6 +59,9 @@ def main():
             if args.action=='analyze':result=service.analyze(args.audio_path)
             elif args.action=='plan':result=service.plan(args.analysis_id,intensity=args.intensity)
             elif args.action=='profile':result=service.profile(args.analysis_id)
+            elif args.action=='rhythm-review':result=service.rhythm_review(args.analysis_id)
+            elif args.action=='tap-tempo':result=service.tap_tempo(json.loads(args.times.read_text()))
+            elif args.action=='tempo-map':result=service.apply_tempo_map(args.analysis_id,json.loads(args.regions.read_text()),args.snap)
             elif args.action=='assets':result=service.assets()
             elif args.action=='projects':result=service.list_projects()
             elif args.action=='jobs':result=service.list_jobs()
@@ -64,7 +71,7 @@ def main():
             elif args.action=='cancel-job':result=service.cancel_job(args.job_id)
             elif args.action=='export-project':result=service.export(args.project_id,args.format)
             elif args.action in ('render-project','beat-preview'):
-                job=service.render_project(args.project_id,args.preview) if args.action=='render-project' else service.beat_preview(args.analysis_id,args.start,args.duration)
+                job=service.render_project(args.project_id,args.preview) if args.action=='render-project' else service.beat_preview(args.analysis_id,args.start,args.duration,args.click_volume)
                 print('Queued '+job['job_id'],file=sys.stderr)
                 while True:
                     result=service.status(job['job_id'])

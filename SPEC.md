@@ -1,4 +1,14 @@
-# Fusionify Audio Intelligence v0.2
+# Fusionify Audio Intelligence v0.3
+
+## v0.3 rhythm editing contract
+
+Extend the existing timing-review flow: select an uploaded soundtrack → inspect a bounded waveform with source-relative markers → prepare original or click-overlay audio → seek/listen → add/remove markers or supply BPM/first beat → save a new timing analysis → create/render a project from that analysis. Editing must never silently overwrite the original analysis or the timing of an existing project. Warn before using unsaved marker edits.
+
+Add `estimate_tap_tempo` (read-only, ordered source-relative taps, robust interval summary rather than an accuracy claim), `apply_tempo_map` (immutable derived analysis from validated non-overlapping source-relative tempo regions), and `get_rhythm_review` (bounded waveform peaks and complete markers, without filesystem paths). Tempo maps support known tempo changes; they are user directions, not automatic variable-tempo detection. Optional snapping only uses nearby measured onset candidates and retains per-marker provenance; unmatched grid points remain explicitly user-specified. Regions use half-open bounds, and gaps deliberately contain no map beats.
+
+Extend `render_beat_preview` with bounded click volume (zero gives original audio without gain change) while preserving its default behavior and full duration. The console controls playback, zoom/range, marker selection/add/remove, undo/reset of unsaved edits, and single-region tempo input; multi-region maps are available through MCP/CLI. Keep all existing project and rendering flows working.
+
+Validate known fixed and changing tempo maps, offsets, end/gap boundaries, snap limits, tap jitter/outliers, malformed inputs, immutable analysis lineage, marker provenance in plans/exports, real audio duration/correlation, MCP stdio/HTTP discovery/calls, and browser listen → seek → edit → save → project → render workflows on desktop/mobile.
 
 ## v0.2 implementation contract
 
@@ -36,7 +46,7 @@ Configure a local or hosted workspace, upload/register music and selected photos
 
 ## Deferred work
 
-Actual public deployment, OAuth, multi-tenant isolation, a built-in generative footage model, variable-tempo beat tracking, production provider evaluation, and perceptual ground-truth alignment across musical styles.
+Actual public deployment, OAuth, multi-tenant isolation, a built-in generative footage model, automatic variable-tempo beat tracking, production provider evaluation, and perceptual ground-truth alignment across musical styles. Explicit user-directed tempo maps are implemented in v0.3.
 
 Desktop/Code configurations and remote HTTP deployment code are provided. Actual Claude web/Desktop/Code UI sessions remain separate integration checks; protocol tests alone do not prove client UI compatibility. No public endpoint has been provisioned.
 

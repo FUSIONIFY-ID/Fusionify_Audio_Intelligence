@@ -45,6 +45,39 @@
               <label class="full">Caption<input id="caption" placeholder="Optional caption" maxlength="160"></label>
             </div>
             <p id="analysis" class="analysis" role="status" hidden></p>
+            <details id="rhythm" class="rhythm-section">
+              <summary>Review music timing</summary>
+              <p class="subtle">Listen, seek and adjust source-relative beat markers. Save timing before making a new edit.</p>
+              <div class="rhythm-actions"><button id="load-rhythm" type="button" class="secondary">Load waveform</button><button id="listen-original" type="button" class="secondary">Prepare original audio</button><button id="listen-clicks" type="button" class="secondary">Prepare beat clicks</button></div>
+              <p id="rhythm-status" class="subtle" role="status">Load a soundtrack to review its timing.</p>
+              <audio id="review-audio" controls preload="metadata" hidden></audio>
+              <div id="rhythm-editor" hidden>
+                <div class="fields rhythm-range">
+                  <label>View starts at (s)<input id="view-start" type="number" min="0" step="0.01" value="0"></label>
+                  <label>View ends at (s)<input id="view-end" type="number" min="0.01" step="0.01"></label>
+                </div>
+                <canvas id="waveform" width="1200" height="180" role="img" aria-label="Soundtrack waveform with beat markers. Use the seek slider and marker controls below for keyboard access."></canvas>
+                <label class="seek-label" for="rhythm-seek">Playhead: <output id="playhead">0.000 s</output></label>
+                <input id="rhythm-seek" type="range" min="0" max="1" step="0.001" value="0" aria-label="Seek soundtrack">
+                <div class="fields rhythm-range">
+                  <label>Marker position (s)<input id="marker-time" type="number" min="0" step="0.001" value="0"></label>
+                  <label>Beat markers<select id="markers" aria-label="Beat markers"></select></label>
+                </div>
+                <div class="rhythm-actions"><button id="add-marker" type="button" class="secondary">Add marker</button><button id="remove-marker" type="button" class="secondary">Remove selected</button><button id="undo-markers" type="button" class="secondary">Undo edit</button><button id="reset-markers" type="button" class="secondary">Reset unsaved</button><button id="save-markers" type="button">Save timing copy</button></div>
+                <p id="marker-status" class="subtle" role="status"></p>
+                <details class="tempo-controls">
+                  <summary>Build a tempo grid</summary>
+                  <p class="subtle">Replaces markers across the full soundtrack with your BPM and first beat. For changing tempos, ask Claude for a map with multiple regions.</p>
+                  <div class="fields rhythm-range">
+                    <label>BPM<input id="map-bpm" type="number" min="30" max="300" step="0.001" placeholder="For example, 128"></label>
+                    <label>First beat in source (s)<input id="map-first" type="number" min="0" step="0.001" value="0"></label>
+                    <label>Snap to nearby onsets (s)<input id="map-snap" type="number" min="0" max="0.1" step="0.001" value="0"></label>
+                  </div>
+                  <div class="rhythm-actions"><button id="tap-beat" type="button" class="secondary">Tap at playhead</button><button id="reset-taps" type="button" class="secondary">Reset taps</button><button id="apply-map" type="button">Save tempo map copy</button></div>
+                  <p id="tap-status" class="subtle" role="status">Play original audio and tap at least four evenly spaced pulses. Applying the grid saves a new analysis.</p>
+                </details>
+              </div>
+            </details>
             <div class="actions"><button id="save" type="button">Save project</button><button id="preview" type="button" class="secondary">Render preview</button><button id="render" type="button">Render full video</button></div>
           </form>
           <p id="project-status" class="subtle" role="status">Project not saved yet. No render yet.</p>

@@ -14,9 +14,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .assets import download_file, inspect_media, local_media
-from .engine import analyze, media_file
+from .engine import analyze, decode, media_file
 from .project import ProjectOptions, project_timeline
 from .render import edit_plan, visualizer
+from .rhythm import estimate_taps, tempo_map_beats
 from .store import Store, identifier
 
 
@@ -52,10 +53,11 @@ class Service:
 
     def workspace(self) -> dict:
         from .semantic import availability
-        return {'version':'0.2.0','mode':'single-owner workspace','upload_url':self.upload_url,
+        return {'version':'0.3.0','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
+                'rhythm_editing':{'tempo_regions':32,'bpm_range':[30,300],'max_snap_tolerance_s':.1,'max_manual_markers':2000},
                 'note':'Attachments require explicit upload. DSP timing is estimated; semantic audio is separately opt-in.'}
 
     def describe_audio(self, analysis_id: str, question: str, allow_external_processing: bool=False) -> dict:
@@ -121,7 +123,45 @@ class Service:
 
     def profile(self, analysis_id: str) -> dict:
         report=self.record(analysis_id)['report']
-        return {'analysis_id':analysis_id,**{k:v for k,v in report.items() if k not in ('beats','energy','source_streams')}}
+        return {'analysis_id':analysis_id,**{k:v for k,v in report.items() if k not in ('beats','onsets','energy','source_streams')}}
+
+    def rhythm_review(self, analysis_id: str) -> dict:
+        import numpy as np
+        _, y = self._verified_audio(analysis_id)
+        report = self.record(analysis_id)['report']
+        # Fixed-size display data, never the full PCM signal or a source path.
+        waveform = [[round(float(c.min()), 5), round(float(c.max()), 5)]
+                    for c in np.array_split(y, min(1200, len(y))) if len(c)]
+        return {'analysis_id':analysis_id,'duration_s':report['duration_s'],
+                'time_reference':report['time_reference'],'waveform':waveform,'beats':report['beats'],
+                'tempo_bpm_estimate':report['tempo_bpm_estimate'],
+                'beat_provenance':report.get('beat_provenance','estimated pulse candidates'),
+                'tempo_map':report.get('tempo_map',[]),'parent_analysis_id':report.get('parent_analysis_id'),
+                'note':'Waveform uses equal-width min/max sample bins. Markers need listening review.'}
+
+    @staticmethod
+    def tap_tempo(tap_times_s: list[float]) -> dict:
+        return estimate_taps(tap_times_s)
+
+    def apply_tempo_map(self, analysis_id: str, regions: list[dict], snap_tolerance_s: float=0) -> dict:
+        record = self.record(analysis_id)
+        # Legacy analyses do not have onsets. Re-measure verified audio only when snapping is requested.
+        report = record['report']
+        beats, parsed = tempo_map_beats(report,regions,snap_tolerance_s)
+        if snap_tolerance_s and 'onsets' not in report:
+            from .engine import measure
+            _, y = self._verified_audio(analysis_id)
+            report = {**report,'onsets':measure(y)['onsets']}
+            beats, parsed = tempo_map_beats(report,regions,snap_tolerance_s)
+        new_id = uuid.uuid4().hex
+        derived = {**report,'schema_version':'0.3.0','beats':beats,'tempo_map':parsed,
+                   'snap_tolerance_s':snap_tolerance_s,
+                   'beat_provenance':'user tempo map; snapped markers retain measured onset provenance',
+                   'parent_analysis_id':analysis_id}
+        self.store.put('analysis',new_id,{'source_path':record['source_path'],'report':derived})
+        return {'analysis_id':new_id,'parent_analysis_id':analysis_id,'beat_count':len(beats),
+                'tempo_map':parsed,'snapped_count':sum(b['provenance']=='user_grid_snapped_to_measured_onset' for b in beats),
+                'note':'BPM map is a user direction, not detected tempo. Original measurements and existing projects are retained.'}
 
     def correct_beats(self, analysis_id: str, beat_times_s: list[float]) -> dict:
         record=self.record(analysis_id)
@@ -133,7 +173,8 @@ class Service:
         if any(a>=b for a,b in zip(beat_times_s,beat_times_s[1:])):
             raise ValueError('Beat times must be unique and strictly increasing.')
         new_id=uuid.uuid4().hex
-        report={**record['report'],'beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
+        report={k:v for k,v in record['report'].items() if k not in ('tempo_map','snap_tolerance_s')}
+        report={**report,'schema_version':'0.3.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
                 'beat_provenance':'user supplied; not independently verified','parent_analysis_id':analysis_id}
         self.store.put('analysis',new_id,{'source_path':record['source_path'],'report':report})
         return {'analysis_id':new_id,'parent_analysis_id':analysis_id,'beat_count':len(beat_times_s),
@@ -228,8 +269,11 @@ class Service:
     def _verified_audio(self, analysis_id: str):
         record=self.record(analysis_id)
         source=media_file(self.media_root,record['source_path'])
-        report,y=analyze(source)
-        if report['source']['sha256']!=record['report']['source']['sha256']:
+        expected=record['report']['source']['sha256']
+        if hashlib.sha256(source.read_bytes()).hexdigest()!=expected:
+            raise ValueError('Source changed since analysis; analyze it again.')
+        y,_=decode(source)
+        if hashlib.sha256(source.read_bytes()).hexdigest()!=expected:
             raise ValueError('Source changed since analysis; analyze it again.')
         return source,y
 
@@ -316,7 +360,9 @@ class Service:
         if not path.is_relative_to(self.state_root) or not path.is_file():raise ValueError('Invalid artifact.')
         return path
 
-    def beat_preview(self, analysis_id: str, start_s: float=0, duration_s: float|None=None) -> dict:
+    def beat_preview(self, analysis_id: str, start_s: float=0, duration_s: float|None=None, click_volume: float=1) -> dict:
+        if isinstance(click_volume,bool) or not isinstance(click_volume,(int,float)) or not math.isfinite(click_volume) or not 0<=click_volume<=2:
+            raise ValueError('Click volume must be a finite number from 0 to 2; zero previews original music.')
         plan=self.plan(analysis_id,start_s,duration_s,'high')
         def worker(output,cancel,progress):
             import numpy as np
@@ -327,7 +373,7 @@ class Service:
             source,_=self._verified_audio(analysis_id)
             duration=plan['duration_s'];samples=np.zeros(math.ceil(duration*SR),dtype=np.float32)
             tx=np.arange(round(.025*SR))/SR
-            tone=(.12*np.sin(2*np.pi*1800*tx)*np.exp(-tx*150)).astype(np.float32)
+            tone=(click_volume*.12*np.sin(2*np.pi*1800*tx)*np.exp(-tx*150)).astype(np.float32)
             for e in plan['events']:
                 k=round(e['video_time_s']*SR);count=min(len(tone),len(samples)-k)
                 if count>0:samples[k:k+count]+=tone[:count]
@@ -335,10 +381,10 @@ class Service:
                 clicks=Path(temp)/'clicks.wav';wavfile.write(clicks,SR,samples)
                 run_process(['ffmpeg','-nostdin','-v','error','-y','-protocol_whitelist','file,pipe',
                     '-f',DEMUXERS[source.suffix.lower()],'-ss',str(start_s),'-i',str(source),'-i',str(clicks),
-                    '-filter_complex','[0:a]volume=0.78[a];[a][1:a]amix=inputs=2:duration=shortest:normalize=0[out]',
+                    '-filter_complex',f'[0:a]volume={0.78 if click_volume else 1}[a];[a][1:a]amix=inputs=2:duration=shortest:normalize=0[out]',
                     '-map','[out]','-t',str(duration),'-c:a','libmp3lame','-b:a','160k',str(output)],cancel)
             progress(1)
-        return self._queue('beat-preview',{'analysis_id':analysis_id,'plan':plan},worker,suffix='mp3')
+        return self._queue('beat-preview',{'analysis_id':analysis_id,'plan':plan,'click_volume':click_volume},worker,suffix='mp3')
 
     def export_analysis(self, analysis_id: str, format: str='json') -> dict:
         if format not in ('json','svg'):raise ValueError('Analysis export format must be json or svg.')

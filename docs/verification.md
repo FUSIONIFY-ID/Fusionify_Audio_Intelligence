@@ -1,8 +1,8 @@
-# Verification notes for v0.2
+# Verification notes for v0.3
 
 ## Backend and protocol checks
 
-The automated suite covers 19 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP.
+The automated suite covers 25 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (27 tools total).
 
 Waveform/MP3 and image/video montage outputs are decoded and probed, including short video looping and music in-points. Audio correlation checks use a known synthetic source; they do not establish perceptual alignment for every musical style. A package build also verifies the HTML/CSS/JS console is included in the wheel.
 
@@ -12,7 +12,7 @@ The Claude CLI manifest validator is run with `--strict`. Its plugin-directory p
 
 Browser plugin was not available. Local Chromium could not start under the executor restrictions, and the alternative browser download failed. The committed Playwright workflow therefore runs on GitHub Actions, with actual screenshots retained temporarily in the workflow artifact. See the [Test workflow](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml) for the current commit's result.
 
-Flow: connect with an ephemeral test token → upload synthetic music/photo → analyze actual audio → save project → render montage preview → play/pause/seek and inspect decoded media dimensions/duration → export JSON → revise caption → disconnect and verify sensitive page state clears.
+Flow: connect with an ephemeral test token → upload synthetic music/photo → analyze → load waveform → prepare full original audio → play/pause/seek → add marker → verify unsaved-edit guard → undo → save an immutable marker copy → apply 120 BPM tempo map → prepare click audio → save project against the corrected analysis → render montage preview → play/pause/seek and inspect decoded media dimensions/duration → export JSON and check timing provenance → revise caption → disconnect and verify asset/marker/audio/video state clears. Mobile also loads the waveform, changes its view range and exercises marker add/reset.
 
 Viewports: concept-native 1505×1045, desktop 1440×1000, mobile 390×844. The browser test checks identity, meaningful content, console/page errors, overflow, media readiness/playback and interaction results. No customer credentials or copyrighted tracks are used in screenshots.
 
@@ -28,8 +28,11 @@ Viewports: concept-native 1505×1045, desktop 1440×1000, mobile 390×844. The b
 | States | Explicit upload, analysis, revision and render results | Controls require authentication; this is intentionally stricter than the visual concept's empty-state buttons |
 | Duration | Full soundtrack is represented by an empty custom duration field | Number input allows an exact requested duration rather than a decorative dropdown |
 | Render revision | Completed result identifies the rendered revision separately from current saved revision | Prevents a newly edited form from implying an old preview is current |
+| Rhythm editing | Collapsible timing editor extends the same navy/blue form and waveform treatment | Original audio is explicitly prepared, playback is user-initiated, keyboard seek/marker controls accompany the canvas |
 
-Desktop/mobile screenshots are visually reviewed against the generated concept. The UI preserves the concept's hierarchy, palette, open layout, typography roles and media treatment. Material repairs include regular field weight, mobile action-label clipping, real playback readiness, and clearing asset/preview data on disconnect.
+The established v0.2 desktop/mobile design was visually reviewed against the generated concept. v0.3 extends that layout with a collapsible rhythm editor; its screenshots are captured by the updated CI flow for review. Material v0.2 repairs include regular field weight, mobile action-label clipping, real playback readiness, and clearing asset/preview data on disconnect.
+
+The browser script is the repeatable verification source; inspect the matching commit's successful workflow before treating a proposed change as browser-verified. The local executor has no Playwright headless-shell installation, so browser checks run in CI. Live tap-button cadence across browsers and human-perceived beat alignment still need a listening session; the backend tap estimator is covered by jitter/outlier fixtures.
 
 ## Checks still requiring an actual deployment/account
 

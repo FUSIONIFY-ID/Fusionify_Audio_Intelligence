@@ -4,12 +4,14 @@
 
 Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## What v0.2 does
+## What v0.3 does
 
 | Capability | Implementation |
 | --- | --- |
 | Real audio analysis | Duration, global pulse estimate, local tempo windows, beat candidates, energy rises, RMS/peak and spectral measurements |
 | Timing review | Full-length click preview, waveform SVG, JSON analysis, manual beat corrections retained as a new analysis |
+| Rhythm editor | Listen/seek original or click audio, waveform range, marker add/remove/undo/reset, immutable timing copies |
+| Tempo directions | Tap-tempo estimate, 1–32 source-relative BPM regions for known tempo changes, optional measured-onset snapping |
 | Media inputs | Local files, authenticated browser uploads, restricted direct HTTPS imports |
 | Video projects | Persistent projects, revision checks, title/caption, music range, asset selection, motion strength, cover/contain, explicit scene overrides |
 | Montage rendering | User photos and MP4/MOV clips, original soundtrack, fixed cut/zoom/pan/shake effects |
@@ -24,6 +26,8 @@ Give Claude real audio timing, a revisable video project, and tools to turn your
 The core engine uses DSP and runs without a paid model API. The optional Gemini adapter is separately enabled and has mocked contract tests; live provider behavior requires a real configured account and is not claimed by those tests.
 
 Automatic beat markers are estimates. An energy rise is a transition candidate, not a confirmed musical drop. Local tempo windows aid inspection; the current beat grid still uses a global estimate and may miss tempo-changing passages. No claim of perfect alignment for every song.
+
+v0.3 adds explicit tempo maps for known changes. Map BPM and first-beat positions are user directions, separate from the original global BPM measurement. Snapped points retain measured-onset provenance; unmatched grid points remain user-specified. This does not change audio speed or automatically detect variable tempo.
 
 ## Quick start: local CLI
 
@@ -113,6 +117,22 @@ No public service is deployed by cloning this repository. A GitHub URL is not an
 
 ## Example conversation
 
+### Review and correct rhythm
+
+Open **Review music timing** in the console, load the waveform, and prepare original audio or a click preview. Listen/seek, zoom the displayed source range, add/remove markers, and undo/reset unsaved changes. **Save timing copy** creates a new analysis and makes it the source for the next new project; existing projects retain their original timing. Unsaved marker edits block project creation/rendering until saved or reset. Preparing original audio retains its level; click previews lower music to 78 percent and mix soft markers. MP3 previews are re-encoded, not bit-identical to the source.
+
+The tempo-grid controls accept BPM and an absolute source-relative first beat over the full soundtrack. Tap at the playing audio's playhead at least four times for an estimate, then explicitly save a grid if wanted. For multiple BPM regions, use MCP `apply_tempo_map` or CLI:
+
+```bash
+uv run fusionify-audio tempo-map ANALYSIS_ID --regions regions.json --snap 0.03
+uv run fusionify-audio rhythm-review NEW_ANALYSIS_ID
+uv run fusionify-audio beat-preview NEW_ANALYSIS_ID --click-volume 1
+```
+
+`regions.json` is an ordered array, for example `[{"start_s":0,"end_s":12,"bpm":120,"first_beat_s":0.4},{"start_s":12,"end_s":30,"bpm":160,"first_beat_s":12.15}]` for a source at least 30 seconds long. Regions cannot overlap, each first beat is inside its region, end timestamps are exclusive, and gaps contain no grid markers. Snapping is optional, bounded to 0.1 seconds and only uses nearby measured onsets. Use the returned new analysis ID for subsequent previews/projects. `tap-tempo taps.json` accepts 4–128 ordered source-relative tap times and does not save timing itself.
+
+### Create a video
+
 > Pakai asset musik ini dan tiga foto yang sudah diupload. Buat JJ vertikal dengan seluruh durasi musik. Jangan terlalu banyak shake. Buat preview dulu, lalu render penuh setelah timing-nya cocok.
 
 Claude can inspect actual timing, create a saved project, choose a preset/intensity, render an explicitly shortened preview, revise the project, then render its full duration. Photo/video montage scenes use the selected soundtrack; original clip audio is muted. Choose cover (center crop) or contain (letterbox); short video clips may loop. Motion strength is independent of cut density. Validated scene overrides support exact image/clip placement without arbitrary filter code. When too few beat candidates are available, editorial fallback cuts are labeled separately from measured beats.
@@ -126,6 +146,7 @@ For custom generated footage, create clips with a separate generation tool, regi
 | Workspace and assets | `get_workspace`, `list_media_assets`, `register_media_asset`, `import_media_url` |
 | Audio | `analyze_audio`, `get_audio_profile`, `get_audio_timeline`, `compare_audio` |
 | Review and correction | `render_beat_preview`, `export_audio_analysis`, `correct_beat_markers` |
+| Rhythm editing | `get_rhythm_review`, `estimate_tap_tempo`, `apply_tempo_map` |
 | Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
 | Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
 | Optional provider | `describe_music` |

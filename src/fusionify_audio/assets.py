@@ -106,7 +106,7 @@ def download_file(url: str, root: Path, hosts: set[str]) -> Path:
             try:
                 request_path = parsed.path or '/'
                 if parsed.query: request_path += '?'+parsed.query
-                conn.request('GET',request_path,headers={'User-Agent':'Fusionify-Audio/0.2','Accept':'*/*'})
+                conn.request('GET',request_path,headers={'User-Agent':'Fusionify-Audio/0.3','Accept':'*/*'})
                 response = conn.getresponse()
                 if response.status in (301,302,303,307,308):
                     location=response.getheader('Location')

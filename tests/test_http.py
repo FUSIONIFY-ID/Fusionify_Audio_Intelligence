@@ -50,6 +50,16 @@ class HTTPTests(unittest.TestCase):
                         r=client.post('/api/call',headers=headers,json={'operation':name,'arguments':args})
                         self.assertEqual(r.status_code,200,r.text);return r.json()
                     analysis=call('analyze_audio',{'audio_path':aid})
+                    review=call('get_rhythm_review',{'analysis_id':analysis['analysis_id']})
+                    self.assertEqual(len(review['waveform']),1200)
+                    tempo=call('estimate_tap_tempo',{'tap_times_s':[.4,.9,1.4,1.9]})
+                    self.assertEqual(tempo['tempo_bpm_estimate'],120)
+                    mapped=call('apply_tempo_map',{'analysis_id':analysis['analysis_id'],'regions':[
+                        {'start_s':0,'end_s':3,'bpm':120,'first_beat_s':.4}]})
+                    self.assertNotEqual(mapped['analysis_id'],analysis['analysis_id'])
+                    bad=client.post('/api/call',headers=headers,json={'operation':'apply_tempo_map','arguments':{
+                        'analysis_id':analysis['analysis_id'],'regions':[{'start_s':0,'end_s':3,'bpm':True,'first_beat_s':0}]}})
+                    self.assertEqual(bad.status_code,400)
                     project=call('create_video_project',{'analysis_id':analysis['analysis_id'],'options':{'title':'HTTP test'}})
                     exported=call('export_video_timeline',{'project_id':project['project_id'],'format':'json'})
                     link=urlsplit(exported['download_url'])

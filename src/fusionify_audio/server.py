@@ -4,6 +4,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from .project import ProjectOptions
+from .rhythm import TempoRegion
 from .service import Service
 
 
@@ -72,9 +73,41 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return await asyncio.to_thread(service.describe_audio,analysis_id,question,allow_external_processing)
 
     @mcp.tool(annotations=write)
-    def render_beat_preview(analysis_id: str, start_s: float=0, duration_s: float|None=None) -> dict:
-        """Queue original music with soft click markers for audible timing review. Defaults to full duration."""
-        return service.beat_preview(analysis_id,start_s,duration_s)
+    def render_beat_preview(analysis_id: str, start_s: float=0, duration_s: float|None=None, click_volume: float=1) -> dict:
+        """Queue audible timing review, full duration by default. click_volume=0 keeps original music level.
+
+        Click volume accepts 0 to 2; positive volume adds markers and lowers music to 78 percent.
+        Save edited markers as a new analysis before requesting a matching click preview.
+        """
+        return service.beat_preview(analysis_id,start_s,duration_s,click_volume)
+
+    @mcp.tool(annotations=read)
+    async def get_rhythm_review(analysis_id: str) -> dict:
+        """Get 1200 min/max waveform bins, complete beat markers and provenance for timing review.
+
+        Source is verified against its analysis hash. Times are seconds from the exact source start.
+        """
+        return await asyncio.to_thread(service.rhythm_review,analysis_id)
+
+    @mcp.tool(annotations=read)
+    def estimate_tap_tempo(tap_times_s: list[float]) -> dict:
+        """Estimate 30-300 BPM from 4-128 ordered source-relative taps; reject inconsistent input.
+
+        Does not save anything or prove musical accuracy. Use the returned BPM in an explicit tempo map.
+        """
+        return service.tap_tempo(tap_times_s)
+
+    @mcp.tool(annotations=write)
+    async def apply_tempo_map(analysis_id: str, regions: list[TempoRegion], snap_tolerance_s: float=0) -> dict:
+        """Create a new timing analysis from 1-32 user-directed tempo regions, retaining the original.
+
+        Each region has source-relative start_s, end_s, first_beat_s and bpm (30-300).
+        Regions must be ordered and non-overlapping; end is exclusive, gaps contain no beats.
+        Optional snap_tolerance_s (0-0.1) aligns only nearby measured onsets. Unsnapped points are
+        labeled user tempo grid. This is not automatic variable-tempo or downbeat detection.
+        Existing projects keep old timing; create a new project with the returned analysis_id.
+        """
+        return await asyncio.to_thread(service.apply_tempo_map,analysis_id,[r.model_dump() for r in regions],snap_tolerance_s)
 
     @mcp.tool(annotations=write)
     def export_audio_analysis(analysis_id: str, format: str='json') -> dict:

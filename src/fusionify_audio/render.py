@@ -24,10 +24,12 @@ def edit_plan(report: dict, start_s: float = 0, duration_s: float | None = None,
         raise ValueError("Requested range exceeds the source audio.")
     pulses = [b for b in report['beats'] if start_s <= b['time_s'] < start_s+duration_s]
     step = {"low":4, "medium":2, "high":1}[intensity]
-    return {"schema_version":"0.1.0", "music_in_s":start_s, "duration_s":round(duration_s,5),
+    return {"schema_version":"0.3.0", "music_in_s":start_s, "duration_s":round(duration_s,5),
             "intensity":intensity, "flash_enabled":False,
             "events":[{"source_time_s":b['time_s'], "video_time_s":round(b['time_s']-start_s,4),
-                       "effect":"cut_or_scale", "status":"candidate"} for b in pulses[::step]],
+                       "effect":"cut_or_scale", "status":"user-directed" if b.get('provenance','').startswith('user') else "candidate",
+                       "provenance":b.get('provenance','estimated_pulse')} for b in pulses[::step]],
+            "beat_provenance":report.get('beat_provenance','estimated pulse candidates'),
             "warnings":report['warnings'], "note":"Review candidate timings before publishing; no bar/downbeat inference."}
 
 

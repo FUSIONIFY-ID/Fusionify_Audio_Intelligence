@@ -64,9 +64,9 @@ def project_timeline(report: dict, options: ProjectOptions) -> dict:
             if round(scene['end_s']*30)<=round(scene['start_s']*30):raise ValueError('Each scene must occupy at least one output frame.')
             previous=scene['end_s']
         if abs(previous-plan['duration_s'])>.0001:raise ValueError('Override scenes must cover the entire selected duration.')
-    return {**plan,'schema_version':'0.2.0','style':options.style,'scenes':scenes,
+    return {**plan,'schema_version':'0.3.0','style':options.style,'scenes':scenes,
             'caption':options.caption,'audio_gain_db':options.audio_gain_db,
             'motion_amount':options.motion_amount,'fit_mode':options.fit_mode,
-            'scene_boundary_source':'user overrides' if options.scene_overrides else 'editorial equal split (insufficient beat candidates)' if editorial_fallback else 'estimated beat candidates',
+            'scene_boundary_source':'user overrides' if options.scene_overrides else 'editorial equal split (insufficient beat candidates)' if editorial_fallback else report.get('beat_provenance','estimated beat candidates'),
             'aspect':options.aspect,'resolution':options.resolution,
             'note':'Scene boundaries are source-derived candidates. Frame rounding applies during rendering.'}

@@ -51,6 +51,13 @@ async def main():
                         assert not result.isError,result
                         report=result_data(result)
                         assert report['duration_s']==3,report
+                        aid=report['analysis_id']
+                        review=result_data(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))
+                        assert len(review['waveform'])==1200
+                        mapped=result_data(await session.call_tool('apply_tempo_map',{'analysis_id':aid,'regions':[
+                            {'start_s':0,'end_s':3,'bpm':120,'first_beat_s':.4}]}))
+                        assert mapped['parent_analysis_id']==aid
+                        assert result_data(await session.call_tool('estimate_tap_tempo',{'tap_times_s':[.4,.9,1.4,1.9]}))['tempo_bpm_estimate']==120
                         workspace=result_data(await session.call_tool('get_workspace'))
                         assert workspace['upload_url']==base+'/'
                 print('PASS: TCP Streamable HTTP MCP auth, initialization, discovery and real audio analysis.')

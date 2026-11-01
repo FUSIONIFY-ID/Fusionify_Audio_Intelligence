@@ -32,12 +32,20 @@ async def main():
                 names={t.name for t in (await session.list_tools()).tools}
                 assert {'analyze_audio','get_audio_timeline','create_edit_plan','render_visualizer','get_job_status',
                         'create_video_project','revise_video_project','render_video_project','export_video_timeline',
-                        'cancel_render_job','correct_beat_markers','import_media_url'}.issubset(names),names
+                        'cancel_render_job','correct_beat_markers','import_media_url',
+                        'get_rhythm_review','apply_tempo_map','estimate_tap_tempo'}.issubset(names),names
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
                 assert report['duration_s']==3
                 aid=report['analysis_id']
                 timeline=payload(await session.call_tool('get_audio_timeline',{'analysis_id':aid}))
                 assert timeline['beats']
+                review=payload(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))
+                assert len(review['waveform'])==1200
+                taps=payload(await session.call_tool('estimate_tap_tempo',{'tap_times_s':[.4,.9,1.4,1.9]}))
+                assert taps['tempo_bpm_estimate']==120
+                mapped=payload(await session.call_tool('apply_tempo_map',{'analysis_id':aid,'regions':[
+                    {'start_s':0,'end_s':3,'bpm':120,'first_beat_s':.4}],'snap_tolerance_s':.03}))
+                assert mapped['parent_analysis_id']==aid and mapped['analysis_id']!=aid
                 plan=payload(await session.call_tool('create_edit_plan',{'analysis_id':aid,'start_s':1,'duration_s':1}))
                 assert plan['music_in_s']==1
                 queued=payload(await session.call_tool('render_visualizer',{'analysis_id':aid,'start_s':1,'duration_s':1,'title':'MCP smoke test'}))
