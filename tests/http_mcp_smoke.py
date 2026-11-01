@@ -24,7 +24,7 @@ def result_data(result):
 
 async def main():
     with tempfile.TemporaryDirectory() as tmp:
-        root=Path(tmp);wavfile.write(root/'track.wav',SR,click_track(128,3))
+        root=Path(tmp);wavfile.write(root/'track.wav',SR,click_track(128,12))
         with socket.socket() as sock:
             sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
         base=f'http://127.0.0.1:{port}';token=secrets.token_urlsafe(48)
@@ -50,10 +50,21 @@ async def main():
                         result=await session.call_tool('analyze_audio',{'audio_path':'track.wav'})
                         assert not result.isError,result
                         report=result_data(result)
-                        assert report['duration_s']==3,report
+                        assert report['duration_s']==12,report
                         aid=report['analysis_id']
-                        direction=result_data(await session.call_tool('create_music_direction',{'analysis_id':aid,'content_brief':'Short editorial test'}))
-                        assert direction['sections'] and direction['duration_s']==3
+                        direction=result_data(await session.call_tool('create_music_direction',{'analysis_id':aid,'section_count':3,
+                            'section_anchors':[{'section_index':1,'source_time_s':4.5}],'content_brief':'Short editorial test'}))
+                        assert direction['sections'][1]['source_start_s']==4.5
+                        project=result_data(await session.call_tool('create_video_project',{'analysis_id':aid,'options':{
+                            'visual_mode':'motion_graphics','story_blocks':[{'headline':h} for h in ['Open','Middle','Close']],
+                            'section_anchors':[{'section_index':1,'source_time_s':4.5}]}}))
+                        excerpt=result_data(await session.call_tool('render_video_project',{'project_id':project['project_id'],
+                            'preview':True,'preview_start_s':5,'preview_duration_s':1}))
+                        for _ in range(120):
+                            state=result_data(await session.call_tool('get_job_status',{'job_id':excerpt['job_id']}))
+                            if state['status'] in ('completed','failed'):break
+                            await asyncio.sleep(.1)
+                        assert state['status']=='completed' and state['preview_start_s']==5 and state['download_url'].startswith(base+'/downloads/'),state
                         review=result_data(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))
                         assert len(review['waveform'])==1200
                         mapped=result_data(await session.call_tool('apply_tempo_map',{'analysis_id':aid,'regions':[

@@ -11,4 +11,5 @@
 - Automatic tracking still estimates a global pulse. v0.3 tempo maps support explicit user-directed tempo regions; they do not automatically establish changing musical tempo.
 - Musical pacing separates held editorial sections from small pulse reactions. Energy matches and pulse markers remain candidates; opening/feature/closing are creative roles.
 - A preview uses the beginning of the saved full sequence rather than replanning the same story over a shorter duration.
+- v0.5 also supports targeted excerpts from elsewhere in the saved sequence. Their preview_start_s is project-relative; section_anchors use absolute source seconds. Both preserve original full-project clocks, with ordinary 30 fps frame quantization.
 - Test a selected region audibly and visually. A good numerical fit on detected onsets alone does not prove perceptual synchronization.

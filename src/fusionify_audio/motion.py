@@ -61,7 +61,8 @@ class MotionFrames:
         self.boundaries=[s['start_s'] for s in self.sections]
         self.beats=[a['video_time_s'] for a in self.direction['accents']]
         strengths=np.array([a['strength'] for a in self.direction['accents']])
-        self.strengths=np.clip(strengths/(np.percentile(strengths,85)+1e-8),0,1) if len(strengths) else strengths
+        reference=self.direction.get('strength_reference',float(np.percentile(strengths,85)) if len(strengths) else 1)
+        self.strengths=np.clip(strengths/(reference+1e-8),0,1) if len(strengths) else strengths
         self.accent=COLORS[options['accent_color']]
         self.story=options['story_blocks'] or [dict(s) for s in DEFAULT_STORY]
         if not options['story_blocks']:
@@ -97,8 +98,10 @@ class MotionFrames:
         pos=bisect.bisect_right(self.beats,t)-1
         delta=t-self.beats[pos] if pos>=0 else 20
         pulse=math.exp(-delta*12)*self.options['motion_amount']*(float(self.strengths[pos]) if pos>=0 else 0)
+        clock=self.timeline.get('project_time_offset_s',0)+t
         return {'section':index,'source_time_s':self.timeline['music_in_s']+t,
-                'motion_clock_s':t,'pulse':pulse,'local_s':t-self.sections[index]['start_s']}
+                'motion_clock_s':clock,'pulse':pulse,
+                'local_s':clock-self.sections[index].get('original_start_s',self.sections[index]['start_s'])}
 
     @staticmethod
     def text(draw,position,layout,color):
@@ -117,8 +120,9 @@ class MotionFrames:
 
     def frame(self,t: float) -> Image.Image:
         state=self.state(t);w,h=self.width,self.height;m=self.margin
-        section=state['section'];block_index=min(section,len(self.story)-1);block=self.story[block_index]
+        section=state['section'];story_index=self.sections[section]['index'];block_index=min(story_index,len(self.story)-1);block=self.story[block_index]
         source_t=state['source_time_s'];pulse=state['pulse'];amount=self.options['motion_amount']
+        clock=state['motion_clock_s'];full_duration=self.timeline.get('project_duration_s',self.timeline['duration_s'])
         im=Image.new('RGB',(w,h),INK);d=ImageDraw.Draw(im)
         d.line((m,h*.105,w-m,h*.105),fill=(43,58,64),width=1)
         self.text(d,(m,h*.035),self.brand_layout,WHITE)
@@ -137,13 +141,13 @@ class MotionFrames:
         spectrum_index=min(len(self.spectrum_times)-1,int(np.searchsorted(self.spectrum_times,source_t)))
         values=self.spectrum[:,spectrum_index]
         if block['visual']=='globe':
-            self.globe(d,t,cx,cy,radius,graphic_color)
+            self.globe(d,clock,cx,cy,radius,graphic_color)
             d.arc((cx-radius*1.14,cy-radius*1.14,cx+radius*1.14,cy+radius*1.14),
-                  start=t*20*amount,end=t*20*amount+65,fill=INK if feature else WHITE,width=max(1,round(w*.003)))
+                  start=clock*20*amount,end=clock*20*amount+65,fill=INK if feature else WHITE,width=max(1,round(w*.003)))
         elif block['visual']=='orbit':
             for j in range(5):
                 r=radius*(.28+j*.17)*(1+.025*pulse)
-                pts=[(cx+math.cos(a+t*.2*amount)*r,cy+math.sin(a+t*.2*amount)*r) for a in np.linspace(0,2*np.pi,5)]
+                pts=[(cx+math.cos(a+clock*.2*amount)*r,cy+math.sin(a+clock*.2*amount)*r) for a in np.linspace(0,2*np.pi,5)]
                 d.line(pts,fill=graphic_color,width=max(1,round(min(w,h)*.003)))
         elif block['visual']=='spectrum':
             for i,v in enumerate(values[::2]):
@@ -168,11 +172,11 @@ class MotionFrames:
         wave=self.y[np.clip(ix,0,len(self.y)-1)]
         d.line([(m+i*(w-2*m)/259,h*.86+float(v)*min(w,h)*.065) for i,v in enumerate(wave)],fill=self.accent,width=max(1,round(min(w,h)*.003)))
         small=font(max(9,round(min(w,h)*.022)))
-        d.text((m,h*.915),f'MUSIC-DRIVEN / {section+1:02d}',font=small,fill=MUTED)
-        time_label=f'{t:05.2f} / {self.timeline["duration_s"]:05.2f} s'
+        d.text((m,h*.915),f'MUSIC-DRIVEN / {story_index+1:02d}',font=small,fill=MUTED)
+        time_label=f'{clock:05.2f} / {full_duration:05.2f} s'
         d.text((w-m,h*.915),time_label,font=small,fill=MUTED,anchor='ra')
         d.line((m,h*.957,w-m,h*.957),fill=(43,58,64),width=2)
-        d.line((m,h*.957,m+(w-2*m)*min(1,t/self.timeline['duration_s']),h*.957),fill=self.accent,width=2)
+        d.line((m,h*.957,m+(w-2*m)*min(1,clock/full_duration),h*.957),fill=self.accent,width=2)
         return im
 
 

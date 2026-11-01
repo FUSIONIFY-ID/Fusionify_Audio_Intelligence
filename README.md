@@ -4,7 +4,7 @@
 
 Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## What v0.4 does
+## What v0.5 does
 
 | Capability | Implementation |
 | --- | --- |
@@ -15,6 +15,8 @@ Give Claude real audio timing, a revisable video project, and tools to turn your
 | Music-to-content direction | Readable editorial sections, explicit audio-event evidence, user content brief and separate micro-motion accents |
 | Native motion graphics | Continuous globe, spectrum, orbit and illustrative audio charts with user story blocks, safe text slots and original soundtrack |
 | Content-fit review | Structural flags for excessive cuts, possible duplicate copy, drifting footage clocks and looping short clips |
+| Locked story cues | Explicit source-time anchors for later sections, with readable holds and evidence labels |
+| Targeted review | Preview any valid saved-project range up to eight seconds while retaining copy, music and animation clocks |
 | Media inputs | Local files, authenticated browser uploads, restricted direct HTTPS imports |
 | Video projects | Persistent projects, revision checks, title/caption, music range, asset selection, motion strength, cover/contain, explicit scene overrides |
 | Montage rendering | User photos and MP4/MOV clips, original soundtrack, fixed cut/zoom/pan/shake effects |
@@ -120,6 +122,24 @@ No public service is deployed by cloning this repository. A GitHub URL is not an
 
 ## Example conversation
 
+### Place a message at a chosen moment in the music
+
+v0.5 adds `section_anchors` to saved musical-pacing projects and `create_music_direction`. An anchor is `{ "section_index": 2, "source_time_s": 17.425 }`: section indices are zero-based, so this locks the third section to second 17.425 of the original audio file. The first section implicitly begins at `music_in_s`. Indices 1–7 are available when those later sections exist. Anchors must be ordered, inside the selected source range, and leave readable holds. They are user directions, not automatically detected drops. Explicit scene overrides and section anchors are separate alternative timing methods.
+
+To keep other scene timing unchanged during a cue revision, read `get_project_timeline.music_sections` and anchor the other later boundaries too. Unlocked sections are replanned between locks. Reordering story blocks requires deliberate index remapping. Too many selected assets for an anchored section count is rejected rather than redistributing and losing the locked times.
+
+Review the changed moment using `render_video_project` with `preview: true`, project-relative `preview_start_s`, and `preview_duration_s` from one frame to eight seconds. For a project beginning at audio second 5, a source cue at 17.425 appears at video second 12.425; a six-second preview beginning 1.5 seconds before it uses start 10.925. Excerpts retain story identity, the original graphic/footage clocks, preceding pulse decay and per-scene motion progress. Native display time remains the full project's clock. Frame-based output still has 30 fps quantization.
+
+Preview queue/status results report project ID, saved revision and selected range. The saved project remains unchanged. Full rendering uses `preview: false` with no preview-range parameters; incompatible parameters are rejected to prevent accidental truncation. Never revise the saved music range merely to review an excerpt.
+
+```bash
+uv run fusionify-audio music-direction ANALYSIS_ID --anchors anchors.json
+uv run fusionify-audio render-project PROJECT_ID --preview --preview-start 10.925 --preview-duration 6
+uv run fusionify-audio render-project PROJECT_ID
+```
+
+Cue control and targeted ranges are currently available through MCP/CLI. The console's existing preview button still reviews the opening.
+
 ### Match the music to the content
 
 v0.4 makes the music skill responsible for the edit's direction: resolve the content goal, inspect actual music, call `create_music_direction`, choose readable story holds separately from ordinary beat accents, save a project, call `review_content_fit`, inspect a preview, then render full length. Section roles are creative proposals. A content brief is recorded for the host assistant; the DSP algorithm does not understand product meaning or judge artistic quality.
@@ -176,7 +196,7 @@ Use `get_workspace` for current capabilities and limits. Ordinary DSP calls neve
 - Single trusted owner workspace, not a multi-tenant SaaS. Everyone holding its token can access its assets/projects.
 - Per file: 64 MiB; audio/video duration: 180 seconds; image limit: 24 megapixels.
 - At most 16 visual assets per project, four queued/active render jobs and one render worker.
-- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side, clipping the saved sequence rather than rearranging the story over a shorter range.
+- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side, clipping the saved sequence at the requested project-relative start rather than rearranging the story over a shorter range.
 - Render stages have time limits; completed artifacts persist. Plan storage/cleanup on the host; the application does not automatically delete older user assets or completed work.
 - HTTP artifact links expire after ten minutes. Refresh job status or export again for a new link.
 - URL imports accept direct public HTTPS media files from exact operator-allowlisted hosts. Redirects are revalidated and the resolved public IP is pinned while TLS verifies the hostname. Streaming pages, private networks and subscription bypasses are unsupported.

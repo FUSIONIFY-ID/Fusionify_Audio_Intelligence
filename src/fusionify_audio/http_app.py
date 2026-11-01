@@ -118,7 +118,7 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         if filename not in ('app.js','app.css'):return Response(status_code=404)
         return FileResponse(web/filename,media_type='text/javascript' if filename.endswith('.js') else 'text/css')
 
-    async def health(request):return JSONResponse({'status':'ok','version':'0.4.0'})
+    async def health(request):return JSONResponse({'status':'ok','version':'0.5.0'})
 
     async def upload(request: Request):
         filename=unquote(request.headers.get('x-filename',''))

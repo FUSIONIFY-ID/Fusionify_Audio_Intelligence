@@ -6,6 +6,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from .project import ProjectOptions
 from .rhythm import Number, TempoRegion
+from .direction import SectionAnchor
 from .service import Service
 
 
@@ -148,15 +149,20 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
 
     @mcp.tool(annotations=read)
     def create_music_direction(analysis_id: str, start_s: float=0, duration_s: float|None=None,
-                               intensity: str='medium', section_count: StrictInt=5, content_brief: str='') -> dict:
+                               intensity: str='medium', section_count: StrictInt=5, content_brief: str='',
+                               section_anchors: list[SectionAnchor]|None=None) -> dict:
         """Propose music-to-content pacing from measured audio and a user content brief.
 
         Separates 1-8 readable editorial sections from small beat-driven motion accents.
         Returns source/video times, energy levels and boundary evidence. Opening/feature/closing
         are creative roles, not detected chorus/drop/downbeats. Does not save or render anything.
         Use pacing_mode=musical on the next project, and story_blocks for native motion graphics.
+        Optional section_anchors lock a zero-based section_index at absolute source_time_s.
+        Zero is the implicit first section, so index 2 means the third. Anchors accept indices 1-7.
+        Section zero starts at start_s. User anchors are not detected musical events.
         """
-        return service.music_direction(analysis_id,start_s,duration_s,intensity,section_count,content_brief)
+        return service.music_direction(analysis_id,start_s,duration_s,intensity,section_count,content_brief,
+                                       [a.model_dump() for a in section_anchors] if section_anchors is not None else None)
 
     @mcp.tool(annotations=write)
     def create_video_project(analysis_id: str, options: ProjectOptions|None=None) -> dict:
@@ -190,6 +196,8 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         if not 0<=offset or not 1<=limit<=500:raise ValueError('Invalid page range.')
         project=service.project(project_id);timeline=project['timeline'];scenes=timeline['scenes']
         return {'project_id':project_id,'revision':project['revision'],'music_in_s':timeline['music_in_s'],
+                'music_sections':timeline['music_direction']['sections'] if timeline.get('music_direction') else [],
+                'section_anchors':project['options'].get('section_anchors',[]),
                 'scenes':scenes[offset:offset+limit],'total':len(scenes),'next_offset':offset+limit if offset+limit<len(scenes) else None}
 
     @mcp.tool(annotations=write)
@@ -200,17 +208,22 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         asset_ids, audio_gain_db, motion_amount, fit_mode, scene_overrides.
         Also pacing_mode, visual_mode, text_overlay, video_playback, brand, accent_color,
         content_brief and story_blocks (headline/support/visual).
+        section_anchors can lock later musical sections at explicit source-relative timestamps.
         Unknown fields, executable code and filter strings are rejected.
         """
         return project_summary(service.revise_project(project_id,expected_revision,changes))
 
     @mcp.tool(annotations=write)
-    def render_video_project(project_id: str, preview: bool=False) -> dict:
-        """Queue project rendering. preview=true explicitly renders at most eight seconds at low resolution.
+    def render_video_project(project_id: str, preview: bool=False, preview_start_s: Number=0,
+                             preview_duration_s: Number|None=None) -> dict:
+        """Queue rendering. preview=true permits a targeted excerpt up to eight seconds at low resolution.
 
         Final renders preserve project duration. Registered footage audio is muted; chosen music is used.
+        preview_start_s uses the saved project's video clock, not absolute source time. Excerpts retain
+        saved story identity and continuous motion/source clocks. No project revision is changed.
+        Non-default preview range parameters are rejected when preview=false. Poll the returned job.
         """
-        return service.render_project(project_id,preview)
+        return service.render_project(project_id,preview,preview_start_s,preview_duration_s)
 
     @mcp.tool(annotations=write)
     def render_visualizer(analysis_id: str, title: str='Your sound. In motion.', start_s: float=0,

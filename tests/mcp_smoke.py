@@ -23,7 +23,7 @@ def payload(result):
 
 async def main():
     with tempfile.TemporaryDirectory() as tmp:
-        root=Path(tmp);wavfile.write(root/'click.wav',SR,click_track(128,3))
+        root=Path(tmp);wavfile.write(root/'click.wav',SR,click_track(128,12))
         env=dict(os.environ,FAI_MEDIA_ROOT=str(root),FAI_STATE_ROOT=str(root/'state'))
         server=StdioServerParameters(command=sys.executable,args=['-m','fusionify_audio.cli','serve'],env=env)
         async with stdio_client(server) as (read,write):
@@ -36,15 +36,31 @@ async def main():
                         'get_rhythm_review','apply_tempo_map','estimate_tap_tempo',
                         'create_music_direction','review_content_fit'}.issubset(names),names
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
-                assert report['duration_s']==3
+                assert report['duration_s']==12
                 aid=report['analysis_id']
                 direction=payload(await session.call_tool('create_music_direction',{'analysis_id':aid,'content_brief':'Short product introduction'}))
                 assert direction['sections'] and direction['accent_count']>0
                 assert 'accents' not in direction
+                anchored=payload(await session.call_tool('create_music_direction',{'analysis_id':aid,'start_s':1,'duration_s':10,
+                    'section_count':3,'section_anchors':[{'section_index':1,'source_time_s':4.5}]}))
+                assert anchored['sections'][1]['source_start_s']==4.5
                 native=payload(await session.call_tool('create_video_project',{'analysis_id':aid,'options':{
-                    'visual_mode':'motion_graphics','pacing_mode':'musical','story_blocks':[{'headline':'Product story','visual':'globe'}]}}))
+                    'visual_mode':'motion_graphics','pacing_mode':'musical','music_in_s':1,'duration_s':10,
+                    'section_anchors':[{'section_index':1,'source_time_s':4.5},{'section_index':2,'source_time_s':8}],
+                    'story_blocks':[{'headline':x,'visual':'globe'} for x in ['Open','Product','Close']]}}))
                 fit=payload(await session.call_tool('review_content_fit',{'project_id':native['project_id']}))
                 assert fit['status']=='no_structural_flags'
+                saved=payload(await session.call_tool('get_project_timeline',{'project_id':native['project_id']}))
+                assert saved['music_sections'][2]['source_start_s']==8
+                assert (await session.call_tool('render_video_project',{'project_id':native['project_id'],'preview_start_s':7})).isError
+                excerpt=payload(await session.call_tool('render_video_project',{'project_id':native['project_id'],'preview':True,
+                    'preview_start_s':7.25,'preview_duration_s':1}))
+                assert excerpt['preview_start_s']==7.25 and excerpt['revision']==1
+                for _ in range(120):
+                    state=payload(await session.call_tool('get_job_status',{'job_id':excerpt['job_id']}))
+                    if state['status'] in ('completed','failed'):break
+                    await asyncio.sleep(.1)
+                assert state['status']=='completed' and state['preview_duration_s']==1,state
                 timeline=payload(await session.call_tool('get_audio_timeline',{'analysis_id':aid}))
                 assert timeline['beats']
                 review=payload(await session.call_tool('get_rhythm_review',{'analysis_id':aid}))

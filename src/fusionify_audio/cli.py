@@ -23,11 +23,13 @@ def main():
     analyze=sub.add_parser('analyze');analyze.add_argument('audio_path')
     plan=sub.add_parser('plan');plan.add_argument('analysis_id');plan.add_argument('--intensity',default='medium')
     direction=sub.add_parser('music-direction');direction.add_argument('analysis_id');direction.add_argument('--brief',default='');direction.add_argument('--sections',type=int,default=5);direction.add_argument('--intensity',default='medium')
+    direction.add_argument('--anchors',type=Path,help='JSON array of section_index/source_time_s anchors')
     for name in ('assets','projects','jobs'):sub.add_parser(name)
     profile=sub.add_parser('profile');profile.add_argument('analysis_id')
     create=sub.add_parser('create-project');create.add_argument('analysis_id');create.add_argument('--options',type=Path)
     revise=sub.add_parser('revise-project');revise.add_argument('project_id');revise.add_argument('--expected-revision',type=int,required=True);revise.add_argument('--changes',type=Path,required=True)
     render=sub.add_parser('render-project');render.add_argument('project_id');render.add_argument('--preview',action='store_true')
+    render.add_argument('--preview-start',type=float,default=0);render.add_argument('--preview-duration',type=float)
     for name in ('job-status','cancel-job'):
         parser=sub.add_parser(name);parser.add_argument('job_id')
     export=sub.add_parser('export-project');export.add_argument('project_id');export.add_argument('--format',choices=['json','csv'],default='json')
@@ -59,7 +61,7 @@ def main():
             result=None
             if args.action=='analyze':result=service.analyze(args.audio_path)
             elif args.action=='plan':result=service.plan(args.analysis_id,intensity=args.intensity)
-            elif args.action=='music-direction':result=service.music_direction(args.analysis_id,content_brief=args.brief,section_count=args.sections,intensity=args.intensity)
+            elif args.action=='music-direction':result=service.music_direction(args.analysis_id,content_brief=args.brief,section_count=args.sections,intensity=args.intensity,section_anchors=json.loads(args.anchors.read_text()) if args.anchors else None)
             elif args.action=='profile':result=service.profile(args.analysis_id)
             elif args.action=='rhythm-review':result=service.rhythm_review(args.analysis_id)
             elif args.action=='tap-tempo':result=service.tap_tempo(json.loads(args.times.read_text()))
@@ -73,7 +75,7 @@ def main():
             elif args.action=='cancel-job':result=service.cancel_job(args.job_id)
             elif args.action=='export-project':result=service.export(args.project_id,args.format)
             elif args.action in ('render-project','beat-preview'):
-                job=service.render_project(args.project_id,args.preview) if args.action=='render-project' else service.beat_preview(args.analysis_id,args.start,args.duration,args.click_volume)
+                job=service.render_project(args.project_id,args.preview,args.preview_start,args.preview_duration) if args.action=='render-project' else service.beat_preview(args.analysis_id,args.start,args.duration,args.click_volume)
                 print('Queued '+job['job_id'],file=sys.stderr)
                 while True:
                     result=service.status(job['job_id'])

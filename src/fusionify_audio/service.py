@@ -15,7 +15,7 @@ from pathlib import Path
 
 from .assets import download_file, inspect_media, local_media
 from .engine import analyze, decode, media_file
-from .project import ProjectOptions, project_timeline
+from .project import ProjectOptions, preview_excerpt, project_timeline
 from .render import edit_plan, visualizer
 from .rhythm import estimate_taps, tempo_map_beats
 from .direction import music_direction
@@ -54,7 +54,7 @@ class Service:
 
     def workspace(self) -> dict:
         from .semantic import availability
-        return {'version':'0.4.0','mode':'single-owner workspace','upload_url':self.upload_url,
+        return {'version':'0.5.0','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
@@ -157,7 +157,7 @@ class Service:
             report = {**report,'onsets':measure(y)['onsets']}
             beats, parsed = tempo_map_beats(report,regions,snap_tolerance_s)
         new_id = uuid.uuid4().hex
-        derived = {**report,'schema_version':'0.4.0','beats':beats,'tempo_map':parsed,
+        derived = {**report,'schema_version':'0.5.0','beats':beats,'tempo_map':parsed,
                    'snap_tolerance_s':snap_tolerance_s,
                    'beat_provenance':'user tempo map; snapped markers retain measured onset provenance',
                    'parent_analysis_id':analysis_id}
@@ -177,7 +177,7 @@ class Service:
             raise ValueError('Beat times must be unique and strictly increasing.')
         new_id=uuid.uuid4().hex
         report={k:v for k,v in record['report'].items() if k not in ('tempo_map','snap_tolerance_s')}
-        report={**report,'schema_version':'0.4.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
+        report={**report,'schema_version':'0.5.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
                 'beat_provenance':'user supplied; not independently verified','parent_analysis_id':analysis_id}
         self.store.put('analysis',new_id,{'source_path':record['source_path'],'report':report})
         return {'analysis_id':new_id,'parent_analysis_id':analysis_id,'beat_count':len(beat_times_s),
@@ -201,8 +201,9 @@ class Service:
         return {'analysis_id':analysis_id,**edit_plan(self.record(analysis_id)['report'],start_s,duration_s,intensity)}
 
     def music_direction(self, analysis_id: str, start_s: float=0, duration_s: float|None=None,
-                        intensity: str='medium', section_count: int=5, content_brief: str='') -> dict:
-        result=music_direction(self.record(analysis_id)['report'],start_s,duration_s,intensity,section_count,content_brief)
+                        intensity: str='medium', section_count: int=5, content_brief: str='',
+                        section_anchors: list[dict]|None=None) -> dict:
+        result=music_direction(self.record(analysis_id)['report'],start_s,duration_s,intensity,section_count,content_brief,section_anchors)
         # Full accent timestamps are already accessible through the audio timeline/review tools.
         return {'analysis_id':analysis_id,**{k:v for k,v in result.items() if k!='accents'}}
 
@@ -280,6 +281,7 @@ class Service:
             job_id=uuid.uuid4().hex
             cancel=threading.Event();self.cancellations[job_id]=cancel
             job={'job_id':job_id,'kind':kind,'format':suffix,'spec':spec,'status':'queued','progress':0,'created_at':time.time()}
+            job.update({k:spec[k] for k in ('project_id','revision','preview','preview_start_s','preview_duration_s') if k in spec})
             self.store.put('job',job_id,job)
         def update(**values):
             with self.lock:
@@ -302,7 +304,8 @@ class Service:
             finally:
                 with self.lock:self.cancellations.pop(job_id,None)
         self.pool.submit(work)
-        return {'job_id':job_id,'status':'queued','next':'Poll get_job_status for completion, errors, or the resulting artifact.'}
+        return {'job_id':job_id,'status':'queued','next':'Poll get_job_status for completion, errors, or the resulting artifact.',
+                **{k:job[k] for k in ('project_id','revision','preview','preview_start_s','preview_duration_s') if k in job}}
 
     def _verified_audio(self, analysis_id: str):
         record=self.record(analysis_id)
@@ -324,23 +327,20 @@ class Service:
             visualizer(source,y,plan,output,title,cancel,progress)
         return self._queue('visualizer',{'analysis_id':analysis_id,'plan':plan,'title':title},worker)
 
-    def render_project(self, project_id: str, preview: bool=False) -> dict:
+    def render_project(self, project_id: str, preview: bool=False, preview_start_s: float=0,
+                       preview_duration_s: float|None=None) -> dict:
+        if not isinstance(preview,bool):raise ValueError('Preview must be a boolean.')
+        if isinstance(preview_start_s,bool) or not isinstance(preview_start_s,(int,float)) or not math.isfinite(preview_start_s):
+            raise ValueError('Preview start must be a finite number.')
+        if not preview and (preview_start_s!=0 or preview_duration_s is not None):
+            raise ValueError('Preview range parameters require preview=true; final renders preserve the full saved project.')
         project=self.project(project_id)
         options,timeline=self._validate_options(project['analysis_id'],dict(project['options']))
-        if preview:
-            options['resolution']=480
-            options['duration_s']=min(project['timeline']['duration_s'],8)
-            length=options['duration_s']
-            timeline={**timeline,'resolution':480,'duration_s':length,
-                      'scenes':[{**s,'end_s':min(s['end_s'],length)} for s in timeline['scenes'] if s['start_s']<length],
-                      'events':[e for e in timeline['events'] if e['video_time_s']<length]}
-            if timeline['music_direction']:
-                d=timeline['music_direction']
-                timeline['music_direction']={**d,'duration_s':length,
-                    'sections':[{**s,'end_s':min(s['end_s'],length),
-                                 'source_end_s':min(s['source_end_s'],timeline['music_in_s']+length)} for s in d['sections'] if s['start_s']<length],
-                    'accents':[a for a in d['accents'] if a['video_time_s']<length]}
         media={aid:self.asset(aid,verify=True) for aid in options['asset_ids']}
+        if preview:
+            timeline=preview_excerpt(timeline,options,media,preview_start_s,preview_duration_s)
+            options['resolution']=480
+            options['duration_s']=timeline['duration_s']
         def worker(output,cancel,progress):
             source,y=self._verified_audio(project['analysis_id'])
             if options['visual_mode']=='motion_graphics':
@@ -353,6 +353,8 @@ class Service:
             else:
                 visualizer(source,y,timeline,output,options['title'],cancel,progress)
         return self._queue('project',{'project_id':project_id,'revision':project['revision'],'preview':preview,
+                                      'preview_start_s':preview_start_s if preview else None,
+                                      'preview_duration_s':timeline['duration_s'] if preview else None,
                                       'options':options,'timeline':timeline},worker)
 
     def status(self, job_id: str) -> dict:

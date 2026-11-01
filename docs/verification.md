@@ -1,4 +1,12 @@
-# Verification notes for v0.4
+# Verification notes for v0.5
+
+## Locked cues and targeted review
+
+v0.5 adds seven tests (37 total); the MCP tool count remains 29. Coverage includes source-relative anchors after a music trim, ordered/readable constraints and incompatible modes, preserving locked boundaries after ordinary project revision, and validating that preview parameters cannot silently shorten a final render.
+
+Targeted native frames are compared directly against the corresponding full-timeline frames, including story block, header, original project clock, waveform, beat-decay strength and graphic position. A real native excerpt is encoded and its audio is correlated against the correct original source region. Two colored-footage checks establish that continue and source_sync modes use their distinct expected source offsets after intervening images. A real zooming-grid render compares the excerpt against the corresponding full-render image, checking that zoom progress does not restart.
+
+Stdio and TCP HTTP MCP smoke scripts exercise source-time anchors and targeted native previews, including queued/completed project revision/range metadata and signed hosted output links. Existing opening-preview/browser behavior remains a regression check. Offline tests do not claim live Claude application UI compatibility or perceptual sync accuracy.
 
 ## Music-to-content direction
 
@@ -10,7 +18,7 @@ Advanced v0.4 direction is currently through MCP/CLI. Existing console controls 
 
 ## Backend and protocol checks
 
-The automated suite covers 30 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (29 tools total).
+The automated suite covers 37 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (29 tools total).
 
 Waveform/MP3 and image/video montage outputs are decoded and probed, including short video looping and music in-points. Audio correlation checks use a known synthetic source; they do not establish perceptual alignment for every musical style. A package build also verifies the HTML/CSS/JS console is included in the wheel.
 

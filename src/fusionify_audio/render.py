@@ -53,6 +53,7 @@ def visualizer(source: Path, y: np.ndarray, plan: dict, output: Path, title: str
     except OSError:
         bold, small = ImageFont.load_default(size=34), ImageFont.load_default(size=16)
     duration = plan['duration_s']; offset = plan['music_in_s']
+    clock_offset=plan.get('project_time_offset_s',0);full_duration=plan.get('project_duration_s',duration)
     events = [e['video_time_s'] for e in plan['events']]
     cmd = ['ffmpeg','-nostdin','-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}',
            '-r',str(fps),'-i','pipe:0','-protocol_whitelist','file,pipe','-f',DEMUXERS[source.suffix.lower()],
@@ -99,9 +100,9 @@ def visualizer(source: Path, y: np.ndarray, plan: dict, output: Path, title: str
                 caption=plan.get('caption') or 'YOUR MUSIC. IN MOTION.'
                 while caption and d.textbbox((0,0),caption,font=small)[2]>w-2*margin:caption=caption[:-1]
                 d.text((margin,h*.79),caption,font=small,fill=(170,190,207))
-                d.text((margin,h*.84),f'{t:05.2f} / {duration:05.2f} s',font=small,fill=(243,247,251))
+                d.text((margin,h*.84),f'{clock_offset+t:05.2f} / {full_duration:05.2f} s',font=small,fill=(243,247,251))
                 d.rectangle((margin,h*.92,w-margin,h*.92+3),fill=(40,53,67))
-                d.rectangle((margin,h*.92,margin+(w-2*margin)*min(t/duration,1),h*.92+3),fill=(78,165,255))
+                d.rectangle((margin,h*.92,margin+(w-2*margin)*min((clock_offset+t)/full_duration,1),h*.92+3),fill=(78,165,255))
                 process.stdin.write(im.tobytes())
                 if progress is not None and k%30==0:progress(.95*k/frames)
             process.stdin.close()

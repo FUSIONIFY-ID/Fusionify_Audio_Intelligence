@@ -31,16 +31,18 @@ def run_process(args: list[str], cancel, timeout: float=120):
             process.wait()
 
 
-def filters(effect: str, width: int, height: int, frames: int, amount: float=.6, fit_mode: str='cover') -> str:
+def filters(effect: str, width: int, height: int, frames: int, amount: float=.6, fit_mode: str='cover',
+            frame_offset: int=0, total_frames: int|None=None) -> str:
     base=f'fps=30,scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1'
     if fit_mode=='contain':base=f'fps=30,scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:color=0x0d1627,setsar=1'
     if effect=='cut' or amount==0:return base
+    total=max(1,total_frames if total_frames is not None else frames)
     if effect=='zoom':
-        return base+f",scale={width*2}:{height*2},zoompan=z='1+{.08*amount:.5f}*on/{max(frames,1)}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s={width}x{height}:fps=30"
+        return base+f",scale={width*2}:{height*2},zoompan=z='1+{.08*amount:.5f}*(on+{frame_offset})/{total}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s={width}x{height}:fps=30"
     if effect=='pan':
-        return base+f",scale={width+40}:{height+40},crop={width}:{height}:x='20+{16*amount:.5f}*sin(n/{max(frames,1)}*PI)':y=20"
+        return base+f",scale={width+40}:{height+40},crop={width}:{height}:x='20+{16*amount:.5f}*sin((n+{frame_offset})/{total}*PI)':y=20"
     if effect=='shake':
-        return base+f",scale={width+32}:{height+32},crop={width}:{height}:x='16+{10*amount:.5f}*sin(n*1.7)*exp(-n/8)':y='16+{6*amount:.5f}*cos(n*2.1)*exp(-n/8)'"
+        return base+f",scale={width+32}:{height+32},crop={width}:{height}:x='16+{10*amount:.5f}*sin((n+{frame_offset})*1.7)*exp(-(n+{frame_offset})/8)':y='16+{6*amount:.5f}*cos((n+{frame_offset})*2.1)*exp(-(n+{frame_offset})/8)'"
     raise ValueError('Unknown scene effect.')
 
 
@@ -103,7 +105,8 @@ def montage(source: Path, timeline: dict, options: dict, media: dict,
                 args+=['-protocol_whitelist','file,pipe','-f','mov','-stream_loop','-1','-ss',str(offset),'-i',str(path)]
                 video_offsets[asset_id]=offset+frames/fps
             shot=folder/f'shot{len(shots):04d}.mp4'
-            args+=['-an','-vf',filters(scene['effect'],width,height,frames,options['motion_amount'],options['fit_mode']),'-frames:v',str(frames),
+            args+=['-an','-vf',filters(scene['effect'],width,height,frames,options['motion_amount'],options['fit_mode'],
+                                    scene.get('motion_frame_start',0),scene.get('motion_total_frames')),'-frames:v',str(frames),
                    '-r','30','-c:v','libx264','-threads','2','-filter_threads','1','-preset','veryfast',
                    '-crf','21','-pix_fmt','yuv420p',str(shot)]
             run_process(args,cancel)

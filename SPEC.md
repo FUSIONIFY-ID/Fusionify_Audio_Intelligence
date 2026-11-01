@@ -1,4 +1,12 @@
-# Fusionify Audio Intelligence v0.4
+# Fusionify Audio Intelligence v0.5
+
+## v0.5 source-time cue control and targeted review
+
+Extend music-to-content direction with optional section anchors: an ordered list of section_index (1–7) and absolute source_time_s. Index zero is the start of the selected music range. An anchor locks a later section's start; it is a user direction, never a detected drop. Fill unlocked sections between anchors using the existing energy/pulse/editorial planner, preserving readable minimum holds. Reject contradictory/out-of-range anchors and anchors on beat-paced or explicit-scene-override projects.
+
+Extend render_video_project preview mode with project-relative preview_start_s and optional preview_duration_s, limited to eight seconds and at least one output frame. Final mode must reject preview-range parameters so it cannot silently truncate the saved full project. Excerpts preserve section/story identity, original music offsets, continuous native motion clocks, pulse decay from preceding markers, per-asset footage clocks and fixed per-scene effect progress. Previewing does not revise the saved project.
+
+Expose anchor evidence and preview range/revision in tool results, CLI and companion skill instructions. Validate anchor constraints, trimmed source offsets, locked-boundary preservation, late-section copy, native frame equivalence, genuine audio correlation, video source continuity and montage effect progress. Keep existing prefix preview calls backward compatible.
 
 ## v0.4 music-to-content direction contract
 
