@@ -14,3 +14,5 @@ description: Set up or troubleshoot Fusionify Audio Intelligence for Claude Code
 - Read `list_video_projects` and `list_render_jobs` to recover work. Re-read project revisions before updating. Refresh job status for a new expiring download link. Resubmit interrupted jobs after reviewing their project revision.
 - One process owns a state directory. If the directory is locked, connect to the running HTTP server or use a separate state directory; never remove an active lock or start competing writers.
 - Distinguish repository tests, actual public deployment, and live Claude-client verification. Report only the checks that really ran.
+
+- For local transcription, inspect `get_workspace.speech_review`. Read `docs/voice-review.md`: install the optional `speech` extra, provide a complete converted local model via `FAI_WHISPER_MODEL_DIR`, and keep that extra in the actual launch command (`uv run --frozen --extra speech ...`). A default launch may omit optional dependencies. Never treat configuration as validated inference or download/upload audio silently. Voice DSP and imported-script checking work without ASR.

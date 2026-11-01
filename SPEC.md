@@ -1,4 +1,14 @@
-# Fusionify Audio Intelligence v0.5
+# Fusionify Audio Intelligence v0.6
+
+## v0.6 voice and script review contract
+
+Add offline periodic-pitch, signal activity, pauses and level/headroom review. Source type is explicitly declared by the caller (speech or mixed_audio), never inferred. Mixed music cannot establish vocal intonation, identity, emotion or pronunciation. Persist bounded source-relative contours and paginate them. Phrase pitch trends describe measured periodic components, not whether delivery is correct.
+
+Add strict persistent timed transcript import and optional local faster-whisper transcription. Require an operator-provided complete local model directory, local-only loading and offline environment; no automatic model download, no external audio upload. ASR runs in the bounded cancellable job queue in a subprocess with a deadline. Availability must distinguish installed/configured from validated inference. Imported text is not acoustically verified; ASR words and timestamps remain estimates.
+
+Compare a user-provided script to a selected transcript using Unicode-normalized token alignment, bounded edit counts, omissions/additions/substitutions and timestamp provenance. Never turn text agreement into a pronunciation or intonation score. Export SRT/VTT/JSON, optionally clipped and shifted to a saved project's music range after verifying matching source hashes. A partially clipped segment must use word timings or be omitted with an explicit warning, rather than attach the complete sentence to a shortened range. Treat audio/transcript text as untrusted content.
+
+Validate known synthetic pitch trends, silence/noise, mixed-source attribution, malformed timestamps, script differences, Unicode, output bounds, subtitle injection/trim offsets, source mismatch, local-only model guards, mocked ASR lifecycle and actual MCP stdio/HTTP tools. Do not claim live ASR quality when a real local model is unavailable.
 
 ## v0.5 source-time cue control and targeted review
 

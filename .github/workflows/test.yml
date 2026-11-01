@@ -14,6 +14,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install package
         run: python -m pip install .
+      - name: Optional local speech backend (no model download)
+        run: |
+          python -m pip install '.[speech]'
+          python -c "from faster_whisper import WhisperModel; from fusionify_audio.speech import availability; assert not availability()['model_configured']"
       - name: DSP and boundaries
         run: python -m unittest discover -s tests -v
       - name: MCP lifecycle
@@ -76,7 +80,7 @@ jobs:
           request=urllib.request.Request('http://127.0.0.1:8000/api/call', data=data, headers={
               'Content-Type':'application/json','Authorization':'Bearer '+os.environ['FAI_API_TOKEN']})
           result=json.load(urllib.request.urlopen(request, timeout=5))
-          assert result['version']=='0.5.0', result
+          assert result['version']=='0.6.0', result
           print('PASS: non-root read-only container, compose configuration and authenticated workspace')
           PY
       - name: Container diagnostics

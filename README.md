@@ -4,10 +4,13 @@
 
 Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
 
-## What v0.5 does
+## What v0.6 does
 
 | Capability | Implementation |
 | --- | --- |
+| Voice delivery review | Offline periodic pitch contour, rising/falling phrase candidates, signal activity/quiet ranges and headroom flags, with mixed-music limitations |
+| Script checking | Persistent timed transcripts, optional local ASR, bounded word-level omissions/additions/substitutions and timestamp provenance |
+| Subtitles | SRT/VTT/JSON export; matching-source project trims and offsets, partial-segment safeguards |
 | Real audio analysis | Duration, global pulse estimate, local tempo windows, beat candidates, energy rises, RMS/peak and spectral measurements |
 | Timing review | Full-length click preview, waveform SVG, JSON analysis, manual beat corrections retained as a new analysis |
 | Rhythm editor | Listen/seek original or click audio, waveform range, marker add/remove/undo/reset, immutable timing copies |
@@ -33,6 +36,8 @@ The core engine uses DSP and runs without a paid model API. The optional Gemini 
 Automatic beat markers are estimates. An energy rise is a transition candidate, not a confirmed musical drop. Local tempo windows aid inspection; the current beat grid still uses a global estimate and may miss tempo-changing passages. No claim of perfect alignment for every song.
 
 v0.3 adds explicit tempo maps for known changes. Map BPM and first-beat positions are user directions, separate from the original global BPM measurement. Snapped points retain measured-onset provenance; unmatched grid points remain user-specified. This does not change audio speed or automatically detect variable tempo.
+
+Voice/script tools are available through MCP and the authenticated API. See [voice and script review](docs/voice-review.md) for a complete example and optional offline ASR setup. Pitch from mixed music cannot be attributed to a vocalist; text agreement is not a pronunciation score. Local ASR contract tests are mocked because no real Whisper model is bundled.
 
 ## Quick start: local CLI
 
@@ -187,6 +192,7 @@ For custom generated footage, create clips with a separate generation tool, regi
 | Content direction | `create_music_direction`, `review_content_fit` |
 | Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
 | Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
+| Voice and script | `analyze_voice`, `get_voice_timeline`, `transcribe_audio`, `import_transcript`, `get_transcript`, `check_spoken_text`, `export_transcript` |
 | Optional provider | `describe_music` |
 
 Use `get_workspace` for current capabilities and limits. Ordinary DSP calls never invoke the optional provider. Returned provider descriptions are uncertain interpretations; measured timestamps remain the timing source.

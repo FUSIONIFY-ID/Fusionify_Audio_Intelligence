@@ -40,7 +40,7 @@ class ArtifactSigner:
 
     def signature(self, artifact_id: str, suffix: str, expires: int) -> str:
         identifier(artifact_id)
-        if suffix not in ('mp4','json','csv','mp3','svg'):raise ValueError('Invalid artifact type.')
+        if suffix not in ('mp4','json','csv','mp3','svg','srt','vtt'):raise ValueError('Invalid artifact type.')
         return hmac.new(self.key,f'{artifact_id}.{suffix}:{expires}'.encode(),hashlib.sha256).hexdigest()
 
     def link(self, artifact_id: str, suffix: str) -> str:
@@ -118,7 +118,7 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         if filename not in ('app.js','app.css'):return Response(status_code=404)
         return FileResponse(web/filename,media_type='text/javascript' if filename.endswith('.js') else 'text/css')
 
-    async def health(request):return JSONResponse({'status':'ok','version':'0.5.0'})
+    async def health(request):return JSONResponse({'status':'ok','version':'0.6.0'})
 
     async def upload(request: Request):
         filename=unquote(request.headers.get('x-filename',''))
@@ -149,6 +149,10 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         'get_workspace':lambda **kw:service.workspace(),
         'list_media_assets':lambda **kw:{'assets':service.assets(**kw)},
         'analyze_audio':service.analyze,'get_audio_profile':service.profile,
+        'analyze_voice':service.analyze_voice,'get_voice_timeline':service.voice_timeline,
+        'transcribe_audio':service.transcribe_audio,'import_transcript':service.import_transcript,
+        'get_transcript':service.get_transcript,'check_spoken_text':service.check_spoken_text,
+        'export_transcript':service.export_transcript,
         'get_audio_timeline':service.timeline,'correct_beat_markers':service.correct_beats,
         'create_music_direction':service.music_direction,
         'get_rhythm_review':service.rhythm_review,'estimate_tap_tempo':service.tap_tempo,
@@ -185,7 +189,8 @@ def build_http_app(service: Service, token: str, public_base_url: str):
             return JSONResponse({'error':'Invalid or expired download link.'},status_code=403)
         try:path=service.artifact_path(artifact_id,suffix)
         except (ValueError,OSError):return Response(status_code=404)
-        types={'mp4':'video/mp4','json':'application/json','csv':'text/csv','mp3':'audio/mpeg','svg':'image/svg+xml'}
+        types={'mp4':'video/mp4','json':'application/json','csv':'text/csv','mp3':'audio/mpeg','svg':'image/svg+xml',
+               'srt':'application/x-subrip','vtt':'text/vtt'}
         return FileResponse(path,media_type=types[suffix],filename=f'fusionify-{artifact_id}.{suffix}',content_disposition_type='inline' if suffix in ('mp4','mp3') else 'attachment')
 
     app=Starlette(routes=[Route('/',index),Route('/favicon.ico',lambda request:Response(status_code=204)),Route('/static/{filename}',static),Route('/healthz',health),

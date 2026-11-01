@@ -63,6 +63,10 @@ Offline tests mock the provider's response contract. Actual account/model access
 
 ## Artifacts and maintenance
 
-MP4/MP3/JSON/CSV/SVG artifacts remain in state storage. Download links are bearer capabilities valid for ten minutes; anyone with a still-valid link can fetch that artifact. Rotate the workspace token to invalidate previously signed links. Do not share tokens or signed URLs publicly.
+MP4/MP3/JSON/CSV/SVG/SRT/VTT artifacts remain in state storage. Download links are bearer capabilities valid for ten minutes; anyone with a still-valid link can fetch that artifact. Rotate the workspace token to invalidate previously signed links. Do not share tokens or signed URLs publicly.
 
 Plan disk capacity and back up before any manual cleanup. The app does not delete user assets automatically. Keep state/media folders operator-controlled; root boundary checks assume other local programs do not maliciously alter files while they are being rendered.
+
+## Optional offline speech review
+
+See [voice-review.md](voice-review.md) for local model requirements, explicit `--extra speech` launch commands and transcript provenance. Default Docker images omit ASR dependencies/model files; build an operator-managed speech image and mount a read-only model directory if needed. Do not install packages at runtime in the read-only container or expose its model directory to tools. Voice DSP, transcript import/checking and subtitle exports need no speech extra.

@@ -15,6 +15,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from scipy.io import wavfile
 from fusionify_audio.engine import SR
 from test_engine import click_track
+from voice_smoke_helpers import exercise_voice
 
 
 def result_data(result):
@@ -52,6 +53,11 @@ async def main():
                         report=result_data(result)
                         assert report['duration_s']==12,report
                         aid=report['analysis_id']
+                        subtitle=await exercise_voice(session,aid,result_data)
+                        async with httpx.AsyncClient(trust_env=False) as downloads:
+                            response=await downloads.get(subtitle['download_url'])
+                            assert response.status_code==200 and response.headers['content-type'].startswith('text/vtt')
+                            assert '00:00:00.000 --> 00:00:01.000' in response.text
                         direction=result_data(await session.call_tool('create_music_direction',{'analysis_id':aid,'section_count':3,
                             'section_anchors':[{'section_index':1,'source_time_s':4.5}],'content_brief':'Short editorial test'}))
                         assert direction['sections'][1]['source_start_s']==4.5

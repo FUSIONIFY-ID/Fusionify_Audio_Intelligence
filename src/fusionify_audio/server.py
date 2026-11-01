@@ -8,6 +8,7 @@ from .project import ProjectOptions
 from .rhythm import Number, TempoRegion
 from .direction import SectionAnchor
 from .service import Service
+from .transcript import Segment
 
 
 def project_summary(project: dict) -> dict:
@@ -23,7 +24,8 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         'Get workspace upload instructions before assuming chat attachments are accessible. '
         'Persist and revise video projects; preserve full source duration unless a shorter range is requested. '
         'Preview is explicitly limited to eight seconds. Final render uses the project duration. '
-        'Do not claim semantic listening, confirmed drops or universal music support. '
+        'Do not claim semantic listening from DSP, confirmed drops or universal music support. '
+        'Keep transcript origin and estimated word timing explicit; text agreement is not pronunciation accuracy. '
         'Poll jobs; only present download_url when returned, otherwise output_path is local.'),
         stateless_http=http,json_response=http,max_request_body_size=1024*1024,
         transport_security=TransportSecuritySettings(allowed_hosts=allowed_hosts or ['127.0.0.1:*','localhost:*'],
@@ -63,6 +65,60 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
     def get_audio_profile(analysis_id: str) -> dict:
         """Get duration, estimated global/local tempos, measured spectral/level features and limitations."""
         return service.profile(analysis_id)
+
+    @mcp.tool(annotations=write)
+    async def analyze_voice(analysis_id: str, declared_source_type: str='mixed_audio') -> dict:
+        """Measure periodic pitch (60–500 Hz), signal activity, pauses and headroom offline.
+
+        Declare speech only for speech-dominant audio. Mixed music may track instruments.
+        Does not separate vocals, infer emotion/identity or score pronunciation/intonation correctness.
+        """
+        return await asyncio.to_thread(service.analyze_voice,analysis_id,declared_source_type)
+
+    @mcp.tool(annotations=read)
+    def get_voice_timeline(voice_id: str, offset: StrictInt=0, limit: StrictInt=100) -> dict:
+        """Page source-relative pitch contour, activity and quiet ranges; at most 500 items per array."""
+        return service.voice_timeline(voice_id,offset,limit)
+
+    @mcp.tool(annotations=write)
+    def transcribe_audio(analysis_id: str, language: str|None=None) -> dict:
+        """Queue optional local-only faster-whisper ASR. Poll get_job_status for result.transcript_id.
+
+        Requires installed speech extra and operator FAI_WHISPER_MODEL_DIR. No automatic download
+        or external audio upload. Transcript and word times are estimates, especially over music.
+        """
+        return service.transcribe_audio(analysis_id,language)
+
+    @mcp.tool(annotations=write)
+    def import_transcript(analysis_id: str, segments: list[Segment], language: str|None=None) -> dict:
+        """Save up to 500 ordered timed segments supplied by the user. This does not verify audio.
+
+        Source-relative seconds; optional words must match text and fit within each segment.
+        """
+        return service.import_transcript(analysis_id,[s.model_dump(exclude_none=True) for s in segments],language)
+
+    @mcp.tool(annotations=read)
+    def get_transcript(transcript_id: str, offset: StrictInt=0, limit: StrictInt=50, include_words: bool=False) -> dict:
+        """Read a paginated transcript with origin and limitations. Enable words for estimated word times."""
+        return service.get_transcript(transcript_id,offset,limit,include_words)
+
+    @mcp.tool(annotations=read)
+    async def check_spoken_text(transcript_id: str, expected_text: str, max_edits: StrictInt=50) -> dict:
+        """Compare a supplied script to transcript tokens: omissions, additions, substitutions and spans.
+
+        Imported text is text-only; ASR can mishear. Agreement does not prove pronunciation or
+        intonation. Number spellings/homophones are not silently equated. No automatic pass verdict.
+        """
+        return await asyncio.to_thread(service.check_spoken_text,transcript_id,expected_text,max_edits)
+
+    @mcp.tool(annotations=write)
+    def export_transcript(transcript_id: str, format: str='srt', project_id: str|None=None) -> dict:
+        """Export SRT/VTT or source-relative JSON. Optional project clips/shifts matching-source subtitles.
+
+        Partial segments without complete in-range word timings are omitted and reported.
+        Project-relative JSON is unsupported. Does not burn subtitles into video.
+        """
+        return service.export_transcript(transcript_id,format,project_id)
 
     @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True,destructiveHint=False,openWorldHint=True))
     async def describe_music(analysis_id: str, question: str, allow_external_processing: bool=False) -> dict:

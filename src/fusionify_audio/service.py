@@ -20,9 +20,10 @@ from .render import edit_plan, visualizer
 from .rhythm import estimate_taps, tempo_map_beats
 from .direction import music_direction
 from .store import Store, identifier
+from .voice_service import VoiceTools
 
 
-class Service:
+class Service(VoiceTools):
     def __init__(self, media_root: Path, state_root: Path, import_hosts: set[str]|None=None):
         self.media_root=media_root.expanduser().resolve(strict=True)
         self.state_root=state_root.expanduser().resolve()
@@ -54,10 +55,12 @@ class Service:
 
     def workspace(self) -> dict:
         from .semantic import availability
-        return {'version':'0.5.0','mode':'single-owner workspace','upload_url':self.upload_url,
+        from .speech import availability as speech_availability
+        return {'version':'0.6.0','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
+                'speech_review':speech_availability(),
                 'rhythm_editing':{'tempo_regions':32,'bpm_range':[30,300],'max_snap_tolerance_s':.1,'max_manual_markers':2000},
                 'music_direction':{'pacing_modes':['beat','musical'],'native_visuals':['globe','spectrum','orbit','market'],
                                    'max_story_blocks':8,'editorial_sections_are_proposals':True},
@@ -157,7 +160,7 @@ class Service:
             report = {**report,'onsets':measure(y)['onsets']}
             beats, parsed = tempo_map_beats(report,regions,snap_tolerance_s)
         new_id = uuid.uuid4().hex
-        derived = {**report,'schema_version':'0.5.0','beats':beats,'tempo_map':parsed,
+        derived = {**report,'schema_version':'0.6.0','beats':beats,'tempo_map':parsed,
                    'snap_tolerance_s':snap_tolerance_s,
                    'beat_provenance':'user tempo map; snapped markers retain measured onset provenance',
                    'parent_analysis_id':analysis_id}
@@ -177,7 +180,7 @@ class Service:
             raise ValueError('Beat times must be unique and strictly increasing.')
         new_id=uuid.uuid4().hex
         report={k:v for k,v in record['report'].items() if k not in ('tempo_map','snap_tolerance_s')}
-        report={**report,'schema_version':'0.5.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
+        report={**report,'schema_version':'0.6.0','beats':[{'time_s':float(t),'strength':1,'provenance':'user'} for t in beat_times_s],
                 'beat_provenance':'user supplied; not independently verified','parent_analysis_id':analysis_id}
         self.store.put('analysis',new_id,{'source_path':record['source_path'],'report':report})
         return {'analysis_id':new_id,'parent_analysis_id':analysis_id,'beat_count':len(beat_times_s),
@@ -294,10 +297,10 @@ class Service:
             update(status='running')
             output=self.state_root/f'{job_id}.{suffix}'
             try:
-                worker(output,cancel,lambda value:update(progress=round(value,3)))
+                result=worker(output,cancel,lambda value:update(progress=round(value,3)))
                 if cancel.is_set():
                     output.unlink(missing_ok=True);update(status='cancelled')
-                else:update(status='completed',progress=1,output_path=str(output))
+                else:update(status='completed',progress=1,output_path=str(output),**({'result':result} if result is not None else {}))
             except Exception as exc:
                 output.unlink(missing_ok=True)
                 update(status='cancelled' if cancel.is_set() else 'failed',error=str(exc))
@@ -395,12 +398,13 @@ class Service:
 
     def artifact_path(self, artifact_id: str, suffix: str) -> Path:
         identifier(artifact_id)
-        if suffix in ('mp4','mp3'):
-            job=self.store.get('job',artifact_id)
+        try:job=self.store.get('job',artifact_id)
+        except ValueError:job=None
+        if job is not None:
             if job['status']!='completed':raise ValueError('Artifact is not ready.')
             if job.get('format','mp4')!=suffix:raise ValueError('Artifact format mismatch.')
             path=Path(job['output_path'])
-        elif suffix in ('json','csv','svg'):
+        elif suffix in ('json','csv','svg','srt','vtt'):
             item=self.store.get('artifact',artifact_id)
             if item['format']!=suffix:raise ValueError('Artifact format mismatch.')
             path=Path(item['path'])

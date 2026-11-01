@@ -1,4 +1,10 @@
-# Verification notes for v0.5
+# Verification notes for v0.6
+
+## v0.6 voice/script review
+
+Nine added tests (46 total) cover known synthetic rising/falling/level pitch, noise/silence, quiet gaps, full-scale review flags, mixed-source attribution, strict transcripts, Unicode alignment, omissions/additions/substitutions, missing-word timestamps, comparison bounds, subtitle escaping, trim/offset semantics, source mismatches, persistence, pagination, mocked ASR queue results/cancellation and offline backend construction. Stdio and real TCP HTTP smoke scripts exercise the new voice/transcript tools and project-relative subtitle download. MCP exposes 36 tools; three companion skills are updated.
+
+The optional faster-whisper package was installed and its real WhisperModel class imported successfully. Local ASR model construction and inference responses in tests are mocked. No real Whisper model was available in the development workspace; transcription quality, word timing quality and actual model/runtime compatibility remain unverified. Configuration flags only establish readiness to attempt. Synthetic pitch checks do not prove real vocal intonation accuracy, especially in mixed music. No pronunciation/emotion scoring or automatic correction is implemented. Subtitle sidecars are exported, not burned into the video.
 
 ## Locked cues and targeted review
 
@@ -18,7 +24,7 @@ Advanced v0.4 direction is currently through MCP/CLI. Existing console controls 
 
 ## Backend and protocol checks
 
-The automated suite covers 37 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (29 tools total).
+The automated suite covers 46 tests for synthetic pulses and silence, decode boundaries, path/symlink restrictions, malformed authorization, signed download expiry/tampering, upload validation, revisions, persistence, cancellation, manual markers, explicit scenes, config merging, montage render/audio offsets and mocked provider contracts. New rhythm coverage includes ordered tempo regions, exclusive boundaries/gaps, strict numeric inputs, nearby-onset snapping, tap jitter/outliers, immutable analysis lineage, complete waveform bins, project marker provenance and original/click preview duration/audio level. Separate smoke scripts exercise actual MCP initialization/discovery/calls over both stdio and TCP Streamable HTTP, including the three new rhythm tools (36 tools total).
 
 Waveform/MP3 and image/video montage outputs are decoded and probed, including short video looping and music in-points. Audio correlation checks use a known synthetic source; they do not establish perceptual alignment for every musical style. A package build also verifies the HTML/CSS/JS console is included in the wheel.
 

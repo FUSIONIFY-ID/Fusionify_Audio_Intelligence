@@ -38,3 +38,7 @@ Use `describe_music` only if the user explicitly agrees to external audio proces
 Do not promise scene generation from text, semantic recognition without a configured provider, perfect sync for every track, or bar/downbeat detection. For newly generated footage, use a separately available generation tool, then register its output and assemble the edit here.
 
 Read [direction.md](references/direction.md) for content-to-music decisions, [cues.md](references/cues.md) for locked cues/targeted previews, [timing.md](references/timing.md) for timing interpretation and [tools.md](references/tools.md) for supported options and examples.
+
+## Voice and script fit
+
+When content includes speech, distinguish speech delivery from music pulse. Use `analyze_voice` and `get_voice_timeline` for periodic pitch/activity; mixed music cannot establish vocal intonation. For script checking, use the audio-intelligence skill's [voice workflow](../audio-intelligence/references/voice.md): local ASR only when available, or an explicitly unverified timed transcript import. Compare against the user's actual script, report flagged spans, and export SRT/VTT with the saved `project_id` so its trim offset is applied. Subtitle export creates a sidecar file; it does not burn captions into the render. Preserve the original soundtrack and all unrelated project timing unless the user directs changes.

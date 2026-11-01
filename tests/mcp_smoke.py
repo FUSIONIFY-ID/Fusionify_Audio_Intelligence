@@ -11,6 +11,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 from test_engine import click_track
+from voice_smoke_helpers import exercise_voice
 from fusionify_audio.engine import SR
 
 
@@ -38,6 +39,8 @@ async def main():
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
                 assert report['duration_s']==12
                 aid=report['analysis_id']
+                subtitle=await exercise_voice(session,aid,payload)
+                assert '00:00:00.000 --> 00:00:01.000' in Path(subtitle['output_path']).read_text()
                 direction=payload(await session.call_tool('create_music_direction',{'analysis_id':aid,'content_brief':'Short product introduction'}))
                 assert direction['sections'] and direction['accent_count']>0
                 assert 'accents' not in direction
