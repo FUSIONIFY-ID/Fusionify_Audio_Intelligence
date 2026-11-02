@@ -1,5 +1,21 @@
 # Verification notes
 
+## Generated editor setup and installed-package render, bundle v0.7.1
+
+The setup helper now produces client-specific Cursor, Kiro and VS Code configurations while retaining Claude Code/Desktop. Seven configuration tests cover collection/transport shapes, the exact portable pin, explicit destinations and replacement, preservation of other servers/fields, backups, malformed JSON/JSONC refusal, client mismatch, media-directory validation and secret-reference output. Five tests are new, bringing the backend suite to 61. The distribution validator now checks that documentation's current engine pin matches mcp.json.
+
+`tests/editor_config_smoke.py` generates each of the three editor-format files in isolated workspaces, reads them back and launches the exact pinned engine through the MCP SDK. All three discover 37 tools, analyze the same synthetic 12-second track, request direction, create/review a native project selecting source seconds 1–11 and render the full ten seconds with preview=false. Observed results:
+
+| Generated client format | Engine | Render duration | Source-range audio correlation |
+| --- | --- | --- | --- |
+| Cursor | 0.7.0 | 10.0 s | 0.999981 |
+| Kiro | 0.7.0 | 10.0 s | 0.999981 |
+| VS Code | 0.7.0 | 10.0 s | 0.999981 |
+
+Each MP4 has a 480×480 video stream and audio, and the saved project remains at revision 1 with its selected duration. Correlation checks the correct synthetic source range, not perceived beat quality. The generated-config/full-render check is included in CI. These runs do not launch or authenticate a native editor: Cursor/Kiro/VS Code were unavailable in the local environment, so native GUI validation remains open. No public endpoint or marketplace listing is claimed.
+
+A separate real Claude Code 2.1.316 CLI run registers the generated portable configuration in an isolated `CLAUDE_CONFIG_DIR` and receives `✔ Connected` from `claude mcp list`. The committed `tests/claude_connection_smoke.py` reproduces this check without personal model credentials or an agent conversation, and is included in CI. It establishes CLI connection health, not Claude-generated video quality, Desktop/web compatibility or a native editor GUI session.
+
 ## Music/video cut timing review v0.7
 
 Eight new tests cover trimmed source clocks, renderer-specific frame quantization, signed offsets and tolerance boundaries, in-range candidate filtering, user marker provenance, locked cues, no-reference/continuous-visualizer cases, skipped zero-frame montage scenes, bounded pagination/previews, strict arguments, project immutability, persistence and CLI use. The backend suite now contains 56 tests. Actual montage encoding confirms a requested 1.01-second cut changes from red to blue at frame 30, matching the diagnostic's 1.00-second render time. Native `MotionFrames.state` is checked immediately before and at its reported first section frame.

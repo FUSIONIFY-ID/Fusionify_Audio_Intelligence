@@ -1,5 +1,11 @@
 # Fusionify Audio Intelligence v0.7.0
 
+## Editor setup and installed-package render verification (bundle v0.7.1)
+
+Extend the explicit config generator to Cursor, Kiro and VS Code while retaining Claude Code/Desktop. Use each client's documented server collection, transport fields and environment-reference syntax. Offer both a frozen checkout launcher and the commit-pinned portable launcher read from mcp.json. Resolve selected media/state paths, preserve unrelated config, back up intentional replacements, reject malformed JSON rather than rewriting JSONC, and never copy a live token or grant blanket tool approval. Print a configuration by default; write only to the explicitly selected destination.
+
+Verify generated configurations in isolated workspaces through real MCP discovery, analysis, project creation, timing review and full-length rendering from the exact pinned package. Probe the resulting video and compare its decoded audio to the synthetic source. Record these as generated-config/protocol checks, not evidence of a native editor GUI session. Keep the remaining GUI, curated marketplace and public HTTPS work explicit. Align documentation's stated engine pin with the manifest and check that alignment automatically.
+
 ## Music/video timing review v0.7
 
 Add a read-only `review_music_sync` tool and CLI/HTTP equivalents for saved projects. Compare actual renderer frame boundaries against the selected analysis's pulse markers and measured energy-rise candidates inside the project's source range. Report source/video clocks, signed millisecond offsets, frame quantization, per-marker provenance and user-directed boundaries. Continuous visualizers have no scene cuts. Do not call proximity perceptual accuracy, infer drops/downbeats, silently change timing, or treat an intentional editorial boundary as an error.

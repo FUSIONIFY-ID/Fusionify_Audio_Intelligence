@@ -2,7 +2,7 @@
 
 [← Overview](../README.md) · [Deployment](deployment.md) · [Verification](verification.md)
 
-Plugin bundle **v0.7.0** packages the three skills and the tested **v0.7.0 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
+Plugin bundle **v0.7.1** packages the three skills and the tested **v0.7.0 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
 
 | Route | Files in this repository | What is available |
 | --- | --- | --- |
@@ -96,6 +96,8 @@ According to the [skills.sh FAQ](https://skills.sh/docs/faq), directory visibili
 
 ## Verify the connection
 
+For an existing editor MCP setup, use the [client-specific configuration generator](editor-setup.md). It supports Cursor, Kiro and VS Code formats, preserves unrelated entries and can reuse the portable engine pin. This is an alternative to native plugin installation; avoid configuring duplicate servers in the same client.
+
 After source installation:
 
 1. Confirm that the client discovers three skills and the `fusionify-audio` MCP entry. Client prefixes may change the displayed server/tool names.
@@ -108,6 +110,6 @@ One local process owns each state directory. Set separate `FAI_STATE_ROOT` direc
 
 ## Engine updates and optional speech
 
-The native launcher currently pins engine code to `8779ff860e465e62325e0f0299fdeacded10fcf5`. Skill-text updates and engine updates are separate: `npx skills update` updates instructions, while changing the engine pin is an explicit release-maintenance action. Dependency versions in uvx's isolated environment are resolved from the package requirements; the code pin is not a complete dependency lock.
+The native launcher currently pins engine code to `910832dc8cf48847384c4f2a4414a0c3b27d9f7f`. Skill-text updates and engine updates are separate: `npx skills update` updates instructions, while changing the engine pin is an explicit release-maintenance action. Dependency versions in uvx's isolated environment are resolved from the package requirements; the code pin is not a complete dependency lock.
 
 For local ASR, configure an operator-prepared `FAI_WHISPER_MODEL_DIR` and include the speech dependency in the actual launcher. A uvx launcher can add `--with "faster-whisper>=1.1,<2"` before `fusionify-audio`; a checkout launcher uses `uv run --frozen --extra speech`. See [voice review](voice-review.md). No provider key or audio upload is needed for the base local workflow.

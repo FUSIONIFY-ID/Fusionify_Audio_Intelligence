@@ -131,7 +131,7 @@ claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 
 ### Native plugins and code editors
 
-Plugin bundle **v0.7.0** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
+Plugin bundle **v0.7.1** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
 
 | Client | Configuration route | Current project support |
 | --- | --- | --- |
@@ -230,6 +230,7 @@ The optional Gemini adapter can provide mood, texture, and visual suggestions. I
 | [Editing workflows](docs/workflows.md) | Story direction, timing corrections, cue locks, previews, and footage controls. |
 | [MCP tool reference](docs/tools.md) | The complete tool map, output behavior, and operational limits. |
 | [Voice and script review](docs/voice-review.md) | Local ASR, transcript provenance, script comparisons, and subtitle timing. |
+| [Editor setup](docs/editor-setup.md) | Generate client-specific configs and verify a full installed-package render. |
 | [Plugins and skills.sh](docs/distribution.md) | Native packages, source installs, custom marketplaces, and publication status. |
 | [Deployment](docs/deployment.md) | Docker, HTTPS, tokens, uploads, URL imports, and remote clients. |
 | [Verification](docs/verification.md) | What was tested, observed model errors, browser checks, and remaining gaps. |
@@ -237,7 +238,7 @@ The optional Gemini adapter can provide mood, texture, and visual suggestions. I
 
 ## Development and verification
 
-The current backend suite has **56 tests**. Separate checks cover real MCP handshakes over stdio and TCP HTTP, browser workflows, strict plugin validation, and the container build.
+The current backend suite has **61 tests**. Separate checks cover real MCP handshakes over stdio and TCP HTTP, browser workflows, strict plugin validation, and the container build.
 
 ```bash
 uv run --frozen python -m unittest discover -s tests -v

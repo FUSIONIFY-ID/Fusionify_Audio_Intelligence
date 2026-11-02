@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Music analysis and video creation tools for Claude creators.",
-    "version": "0.7.0"
+    "version": "0.7.1"
   },
   "plugins": [
     {
       "name": "fusionify-audio-intelligence",
       "source": "./",
       "description": "Music analysis, revisable video projects and authenticated MCP for creators.",
-      "version": "0.7.0"
+      "version": "0.7.1"
     }
   ]
 }

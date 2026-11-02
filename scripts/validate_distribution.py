@@ -35,6 +35,8 @@ def validate(root,schema_dir):
     assert server['command']=='uvx' and server['args'][-2:]==['fusionify-audio','serve'],'unexpected launcher'
     source=server['args'][server['args'].index('--from')+1]
     assert re.fullmatch(r'git\+https://github\.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence@[a-f0-9]{40}',source),'engine must use a full commit pin'
+    documented=re.search(r'currently pins engine code to `([a-f0-9]{40})`',(root/'docs/distribution.md').read_text())
+    assert documented and documented.group(1)==source.rsplit('@',1)[1],'documented engine pin differs from mcp.json'
     assert '${PLUGIN_ROOT}' not in json.dumps(config) and '${CURSOR_PLUGIN_ROOT}' not in json.dumps(config),'client-specific root expansion'
     required=set(re.findall(r'\$\{([A-Z_]+)\}',json.dumps(config)))
     assert required.issubset(cursor['variables']['properties']),'undeclared Cursor variable'

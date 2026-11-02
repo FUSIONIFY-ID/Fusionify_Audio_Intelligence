@@ -1,6 +1,6 @@
 {
   "name": "fusionify-audio-intelligence",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Analyze music timing and voice delivery, check scripts, export subtitles, and build revisable music-driven video projects through local or authenticated remote MCP.",
   "author": {
     "name": "FUSIONIFY"
