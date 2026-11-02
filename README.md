@@ -237,7 +237,7 @@ The optional Gemini adapter can provide mood, texture, and visual suggestions. I
 
 ## Development and verification
 
-The current backend suite has **48 tests**. Separate checks cover real MCP handshakes over stdio and TCP HTTP, browser workflows, strict plugin validation, and the container build.
+The current backend suite has **56 tests**. Separate checks cover real MCP handshakes over stdio and TCP HTTP, browser workflows, strict plugin validation, and the container build.
 
 ```bash
 uv run --frozen python -m unittest discover -s tests -v
