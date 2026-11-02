@@ -28,14 +28,19 @@ async def main():
         async with stdio_client(params) as (read,write):
             async with ClientSession(read,write) as session:
                 await session.initialize()
-                tools=await session.list_tools();assert len(tools.tools)==36
+                tools=await session.list_tools();assert len(tools.tools)==37
                 workspace=payload(await session.call_tool('get_workspace'))
-                assert workspace['version']=='0.6.1',workspace
+                assert workspace['version']=='0.7.0',workspace
                 analysis=payload(await session.call_tool('analyze_audio',{'audio_path':'test.wav'}))
                 assert analysis['duration_s']==8,analysis
                 direction=payload(await session.call_tool('create_music_direction',{'analysis_id':analysis['analysis_id'],'section_count':2}))
                 assert direction['accent_count']>0 and len(direction['sections'])==2
-                print('PASS: portable uvx launcher, real MCP initialize/discovery, 36 tools, source audio analysis and music direction.')
+                assert workspace['music_sync_review']['read_only']
+                project=payload(await session.call_tool('create_video_project',{'analysis_id':analysis['analysis_id'],
+                    'options':{'visual_mode':'motion_graphics','story_blocks':[{'headline':'Open'},{'headline':'Close'}]}}))
+                sync=payload(await session.call_tool('review_music_sync',{'project_id':project['project_id']}))
+                assert sync['boundary_count']==1 and sync['renderer']=='motion_graphics',sync
+                print('PASS: portable uvx launcher, real MCP initialize/discovery, 37 tools, source audio analysis, music direction and cut timing review.')
 
 
 if __name__=='__main__':asyncio.run(main())

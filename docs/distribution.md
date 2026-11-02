@@ -2,7 +2,7 @@
 
 [← Overview](../README.md) · [Deployment](deployment.md) · [Verification](verification.md)
 
-Plugin bundle **v0.6.3** packages the three skills and the tested **v0.6.1 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
+Plugin bundle **v0.7.0** packages the three skills and the tested **v0.7.0 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
 
 | Route | Files in this repository | What is available |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ $env:FAI_MEDIA_ROOT = 'C:\Media'
 
 An already running GUI process may retain its old environment. Verify the value in the actual MCP process rather than assuming it inherited a later shell change. Cursor's native manifest declares this configurable variable.
 
-The portable launcher uses `uvx --from` with a full Git commit pin for engine v0.6.1. Its first start fetches that engine package and dependencies; subsequent starts can use the tool cache. Source audio is processed locally. No speech model is bundled or downloaded. The launcher avoids plugin-root placeholders, so it does not depend on each client implementing the same directory variables.
+The portable launcher uses `uvx --from` with a full Git commit pin for engine v0.7.0. Its first start fetches that engine package and dependencies; subsequent starts can use the tool cache. Source audio is processed locally. No speech model is bundled or downloaded. The launcher avoids plugin-root placeholders, so it does not depend on each client implementing the same directory variables.
 
 The existing Claude plugin still runs the engine from its checkout with the frozen project environment. It retains its established installation behavior.
 

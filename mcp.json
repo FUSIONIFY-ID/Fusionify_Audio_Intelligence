@@ -6,7 +6,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence@8779ff860e465e62325e0f0299fdeacded10fcf5",
+        "git+https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence@910832dc8cf48847384c4f2a4414a0c3b27d9f7f",
         "fusionify-audio",
         "serve"
       ],
