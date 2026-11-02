@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="520" viewBox="0 0 1400 520" role="img" aria-labelledby="title desc">
+  <title id="title">Fusionify Audio Intelligence — Your music. Your visual direction.</title>
+  <desc id="desc">Navy and lime project artwork with a wireframe globe and a waveform motif. Audio analysis, story timing and video creation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#101c2b"/>
+    </linearGradient>
+    <radialGradient id="globe-fill">
+      <stop offset="0" stop-color="#bbf75a" stop-opacity=".055"/><stop offset="1" stop-color="#bbf75a" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="globe-clip"><circle cx="1110" cy="253" r="172"/></clipPath>
+  </defs>
+  <rect x="1" y="1" width="1398" height="518" rx="22" fill="url(#bg)" stroke="#263447"/>
+  <path d="M64 98H1336" stroke="#2a3947"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="64" y="65" fill="#f1f6f0" font-size="16" font-weight="700" letter-spacing="2.4">FUSIONIFY <tspan fill="#a4b3c3" font-weight="400">/ AUDIO INTELLIGENCE</tspan></text>
+    <text x="64" y="190" fill="#f1f6f0" font-size="66" font-weight="700" letter-spacing="-2">Your music.</text>
+    <text x="64" y="269" fill="#c0ff58" font-size="66" font-weight="700" letter-spacing="-2">Your visual direction.</text>
+    <text x="67" y="320" fill="#bdcad6" font-size="22">Audio analysis. Story timing. Video creation.</text>
+    <text x="67" y="355" fill="#8b9caf" font-size="18">Local-first tools for Claude and MCP-compatible agents.</text>
+    <g fill="#11232b" stroke="#34503b">
+      <rect x="65" y="399" width="144" height="35" rx="17.5"/>
+      <rect x="221" y="399" width="144" height="35" rx="17.5"/>
+      <rect x="377" y="399" width="144" height="35" rx="17.5"/>
+    </g>
+    <g fill="#c0ff58" font-size="11" font-weight="700" letter-spacing="2" text-anchor="middle">
+      <text x="137" y="421">ANALYZE</text><text x="293" y="421">DIRECT</text><text x="449" y="421">CREATE</text>
+    </g>
+  </g>
+  <circle cx="1110" cy="253" r="197" fill="url(#globe-fill)"/>
+  <g clip-path="url(#globe-clip)" fill="none" stroke="#c0ff58" stroke-width="1" opacity=".42">
+    <circle cx="1110" cy="253" r="172"/>
+    <ellipse cx="1110" cy="253" rx="132" ry="172"/><ellipse cx="1110" cy="253" rx="72" ry="172"/>
+    <path d="M1110 81V425M938 253H1282"/>
+    <ellipse cx="1110" cy="253" rx="172" ry="41"/><ellipse cx="1110" cy="253" rx="172" ry="101"/>
+    <path d="M960 167Q1110 216 1260 167M960 339Q1110 290 1260 339M991 129Q1110 171 1229 129M991 377Q1110 335 1229 377"/>
+  </g>
+  <path d="M941 198A178 178 0 0 1 1110 75" fill="none" stroke="#c0ff58" stroke-width="2"/>
+  <path d="M1277 312A178 178 0 0 1 1204 404" fill="none" stroke="#e7f1e2" stroke-width="2"/>
+  <circle cx="976" cy="176" r="4" fill="#c0ff58"/><circle cx="1197" cy="224" r="4" fill="#c0ff58"/>
+  <path d="M976 176Q1090 120 1197 224" fill="none" stroke="#c0ff58" stroke-opacity=".6" stroke-dasharray="4 6"/>
+  <path d="M64 474H1336" stroke="#2a3947"/>
+  <path d="M64 474H575L584 470 591 479 598 464 606 486 615 453 624 495 635 465 644 483 651 474H686L693 465 701 484 710 451 719 495 730 461 739 485 749 474H779L789 466 799 482 810 459 819 489 829 472 839 478 850 474H1336" fill="none" stroke="#c0ff58" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

@@ -1,225 +1,240 @@
-# Fusionify Audio Intelligence
+<p align="center">
+  <img src="docs/assets/hero.svg" alt="Fusionify Audio Intelligence — Your music. Your visual direction." width="1000" />
+</p>
 
-**Your music. Your visual direction.**
+<p align="center">
+  <strong>Turn real audio into deliberate visual edits.</strong><br />
+  Music analysis, creative direction, voice review, and video rendering for AI agents.
+</p>
 
-Give Claude real audio timing, a revisable video project, and tools to turn your music and visuals into a finished edit. Built for JJ, remix, breakbeat, promos, cinematic montages, and waveform videos.
+<p align="center">
+  <a href="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml"><img src="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/version-0.6.1-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Version 0.6.1" /></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Python-3.11%2B-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Python 3.11 or newer" /></a>
+  <a href="docs/tools.md"><img src="https://img.shields.io/badge/MCP-stdio%20%2B%20HTTP-c0ff58?style=flat-square&amp;labelColor=111b28" alt="MCP over stdio and HTTP" /></a>
+</p>
 
-## What v0.6.1 does
+<p align="center">
+  <a href="#quick-start"><strong>Get started</strong></a> ·
+  <a href="#connect-your-agent">Connect your agent</a> ·
+  <a href="#see-the-output">See the output</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/issues">Report an issue</a>
+</p>
 
-| Capability | Implementation |
+---
+
+## Let the soundtrack shape the edit
+
+A beat can trigger a small reaction. A scene needs enough time to say something.
+
+Fusionify Audio Intelligence gives Claude and MCP-compatible agents a practical way to work with **actual audio files**: inspect the sound, review timing, build a visual story, preview a chosen moment, and render the full project. Use it for JJ, remix, breakbeat, product promos, cinematic edits, or voice-led content.
+
+**Local processing by default · Full soundtrack by default · Timing you can inspect and revise**
+
+The current toolkit includes **36 MCP tools**, **3 companion skills**, a Python CLI, and an authenticated creator console. The core workflow runs without a paid model API.
+
+## See the output
+
+![Three actual native-render frames: a globe opening, an orbit story section, and an audio-derived chart.](docs/assets/preview.jpg)
+
+These are frames from a full-length video rendered by the project service. Globe, orbit, spectrum, and chart scenes use continuous motion and the original soundtrack. The chart visualizes audio amplitude; real business data is supplied separately.
+
+## What you can build
+
+| Capability | What it gives your agent |
 | --- | --- |
-| Voice delivery review | Offline periodic pitch contour, rising/falling phrase candidates, signal activity/quiet ranges and headroom flags, with mixed-music limitations |
-| Script checking | Persistent timed transcripts, optional local ASR, bounded word-level omissions/additions/substitutions and timestamp provenance |
-| Subtitles | SRT/VTT/JSON export; matching-source project trims and offsets, partial-segment safeguards |
-| Real audio analysis | Duration, global pulse estimate, local tempo windows, beat candidates, energy rises, RMS/peak and spectral measurements |
-| Timing review | Full-length click preview, waveform SVG, JSON analysis, manual beat corrections retained as a new analysis |
-| Rhythm editor | Listen/seek original or click audio, waveform range, marker add/remove/undo/reset, immutable timing copies |
-| Tempo directions | Tap-tempo estimate, 1–32 source-relative BPM regions for known tempo changes, optional measured-onset snapping |
-| Music-to-content direction | Readable editorial sections, explicit audio-event evidence, user content brief and separate micro-motion accents |
-| Native motion graphics | Continuous globe, spectrum, orbit and illustrative audio charts with user story blocks, safe text slots and original soundtrack |
-| Content-fit review | Structural flags for excessive cuts, possible duplicate copy, drifting footage clocks and looping short clips |
-| Locked story cues | Explicit source-time anchors for later sections, with readable holds and evidence labels |
-| Targeted review | Preview any valid saved-project range up to eight seconds while retaining copy, music and animation clocks |
-| Media inputs | Local files, authenticated browser uploads, restricted direct HTTPS imports |
-| Video projects | Persistent projects, revision checks, title/caption, music range, asset selection, motion strength, cover/contain, explicit scene overrides |
-| Montage rendering | User photos and MP4/MOV clips, original soundtrack, fixed cut/zoom/pan/shake effects |
-| Styles | JJ/remix, cinematic, product promo, minimal; low/medium/high intensity |
-| Output | 9:16, 16:9, 1:1; short side 480/720/1080 pixels; explicit preview or full project render |
-| Render management | Bounded queue, progress, cancellation, persistent results, interrupted-job recovery |
-| Timeline exports | Project JSON and CSV scene markers |
-| Claude integration | Stdio MCP, authenticated Streamable HTTP MCP, Claude Code plugin and three companion skills |
-| Creator console | Token-gated upload, audio analysis, project settings, render preview and download |
-| Optional music interpretation | Gemini adapter for mood/texture/visual suggestions; explicit external-processing agreement and operator credentials required |
+| **Understand the timing** | Duration, pulse estimates, onset candidates, energy, waveform, levels, and spectral measurements from the selected file. |
+| **Review the rhythm** | Full-length original/click previews, editable markers, tap-tempo estimates, and explicit BPM regions with source-time anchors. |
+| **Direct the story** | A content brief, readable section holds, small beat reactions, locked cues, and checks for structural editing problems. |
+| **Create the visuals** | Native motion graphics or montages from your photos and clips, with fixed cut, zoom, pan, and shake effects. |
+| **Review voice and text** | Pitch/activity contours, optional local transcription, script differences, listening-review flags, and timed subtitle exports. |
+| **Revise and deliver** | Saved project revisions, targeted previews, cancellable jobs, full renders, and downloadable artifacts. |
 
-The core engine uses DSP and runs without a paid model API. The optional Gemini adapter is separately enabled and has mocked contract tests; live provider behavior requires a real configured account and is not claimed by those tests.
+**Output:** MP4 video in **9:16, 16:9, or 1:1**, at a short-side resolution of **480, 720, or 1080 pixels**. Exports include project JSON/CSV, waveform SVG, MP3 timing previews, and SRT/VTT subtitles.
 
-Automatic beat markers are estimates. An energy rise is a transition candidate, not a confirmed musical drop. Local tempo windows aid inspection; the current beat grid still uses a global estimate and may miss tempo-changing passages. No claim of perfect alignment for every song.
+Measured timing remains an estimate. Review markers by listening, and use corrections where needed. Voice pitch in mixed music can follow an instrument; transcript agreement alone cannot establish correct pronunciation or intonation.
 
-v0.3 adds explicit tempo maps for known changes. Map BPM and first-beat positions are user directions, separate from the original global BPM measurement. Snapped points retain measured-onset provenance; unmatched grid points remain user-specified. This does not change audio speed or automatically detect variable tempo.
+## Quick start
 
-Voice/script tools are available through MCP and the authenticated API. See [voice and script review](docs/voice-review.md) for a complete example and optional offline ASR setup. Pitch from mixed music cannot be attributed to a vocalist; text agreement is not a pronunciation score. Base ASR contract tests use mocks; an opt-in real local-model smoke script covers synthetic narration, digital silence, music beds and an actual MCP call flow. No Whisper weights are bundled.
+### 1. Install the workspace
 
-v0.6.1 fixes a real decoder compatibility failure by passing verified PCM directly into ASR. Exact digital silence skips inference with explicit provenance. Estimated words receive bounded listening-review flags; no flag is a correctness verdict. See the [recorded local-model test results](docs/verification.md#real-local-model-check-v061).
-
-## Quick start: local CLI
-
-Install Python 3.11+, [uv](https://docs.astral.sh/uv/), FFmpeg and ffprobe. Then:
+Have **Python 3.11+**, [uv](https://docs.astral.sh/uv/), **FFmpeg**, and **ffprobe** on your machine.
 
 ```bash
 git clone https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence.git
 cd Fusionify_Audio_Intelligence
 uv sync --frozen
-uv run fusionify-audio doctor
+uv run --frozen fusionify-audio doctor
 ```
 
-macOS/Linux:
+### 2. Choose your media folder
+
+On macOS or Linux:
 
 ```bash
-export FAI_MEDIA_ROOT="/absolute/path/to/music-and-visuals"
-uv run fusionify-audio analyze "track.mp3"
-uv run fusionify-audio profile ANALYSIS_ID
-uv run fusionify-audio create-project ANALYSIS_ID
-uv run fusionify-audio render-project PROJECT_ID
+mkdir -p media
+export FAI_MEDIA_ROOT="$PWD/media"
+export FAI_STATE_ROOT="$PWD/state"
 ```
 
-PowerShell:
+<details>
+<summary><strong>Windows PowerShell</strong></summary>
 
 ```powershell
-$env:FAI_MEDIA_ROOT = 'C:\Users\you\Music'
-uv run fusionify-audio analyze 'track.mp3'
+New-Item -ItemType Directory -Force media | Out-Null
+$env:FAI_MEDIA_ROOT = (Resolve-Path .\media).Path
+$env:FAI_STATE_ROOT = Join-Path (Get-Location).Path 'state'
 ```
 
-CLI render commands wait for completion. MCP render tools return a job ID for polling. State defaults to `~/.fusionify-audio`; configure `FAI_STATE_ROOT` to change it. One server process owns each state directory. Use one HTTP server when multiple clients need the same workspace.
+</details>
 
-## Claude Code plugin
+Place your soundtrack in that folder, for example `media/track.mp3`. Audio inputs include MP3, WAV, FLAC, OGG, and M4A; supported video inputs include MP4 and MOV.
 
-Set `FAI_MEDIA_ROOT` in the environment from which Claude starts, then:
+### 3. Analyze, save, and render
+
+```bash
+uv run --frozen fusionify-audio analyze "track.mp3"
+uv run --frozen fusionify-audio profile ANALYSIS_ID
+uv run --frozen fusionify-audio create-project ANALYSIS_ID
+uv run --frozen fusionify-audio render-project PROJECT_ID
+```
+
+Replace `ANALYSIS_ID` and `PROJECT_ID` with the IDs returned by the preceding commands. A default project uses the full remaining soundtrack, within the input limit. CLI render commands wait and return the resulting artifact path.
+
+Want your agent to direct the edit? Connect it to the same workspace below.
+
+## Connect your agent
+
+### Claude Code plugin
+
+Set the media/state environment variables in the shell that launches Claude, then install:
 
 ```text
 /plugin marketplace add FUSIONIFY-ID/Fusionify_Audio_Intelligence
 /plugin install fusionify-audio-intelligence@fusionify-audio
 ```
 
-Or try a checkout directly:
+For a local checkout:
 
 ```bash
 claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 ```
 
-Skills included:
-
-- **music-driven-video:** create, revise, render and export edits.
-- **audio-intelligence:** inspect actual audio, compare measurements and review/correct beat markers.
-- **workspace-setup:** local/remote setup and recovery.
-
-Run `claude plugin validate /absolute/path/to/Fusionify_Audio_Intelligence --strict` for the client CLI's authoritative manifest validation. Repository JSON checks and MCP tests do not substitute for live Claude UI verification.
-
-## Claude Desktop: local MCP
-
-Generate a configuration using actual absolute paths:
-
-```bash
-python scripts/configure_client.py --client claude-desktop --media-root /absolute/path/to/media
-```
-
-The script prints JSON by default. To merge a chosen configuration file, add `--write /path/to/config.json`. It preserves other server entries and creates a backup. Replacing an existing Fusionify entry requires `--replace`. Set `--uv-command` to the absolute uv executable if your desktop application cannot find it in PATH.
-
-The generated local MCP config does not itself install skills in Desktop. Use the client's available skill installation mechanism separately.
-
-## HTTP workspace and Claude web
-
-Start a local HTTP workspace:
-
-```bash
-uv run fusionify-audio generate-token
-# Save the generated value securely in FAI_API_TOKEN on your own computer/server.
-export FAI_PUBLIC_BASE_URL="http://127.0.0.1:8000"
-uv run fusionify-audio serve-http
-```
-
-Open `http://127.0.0.1:8000/`, enter the operator-supplied token, and upload music/visuals. The token stays in page memory and is not saved to local/session storage. Copy asset IDs into Claude or create a project through the console.
-
-For a remote connector, deploy behind HTTPS first. Configure:
-
-- URL: your actual `https://your-host/mcp` endpoint.
-- Request header: `Authorization` with value `Bearer YOUR_WORKSPACE_TOKEN`, stored in the client's secret configuration rather than chat.
-- For Claude web/Desktop, use the custom connector interface. If request headers are unavailable in your client/account, use local mode; do not disable server authentication.
-
-No public service is deployed by cloning this repository. A GitHub URL is not an MCP endpoint. See [deployment](docs/deployment.md) for Docker, HTTPS, imports, and client setup.
-
-## Example conversation
-
-### Place a message at a chosen moment in the music
-
-v0.5 adds `section_anchors` to saved musical-pacing projects and `create_music_direction`. An anchor is `{ "section_index": 2, "source_time_s": 17.425 }`: section indices are zero-based, so this locks the third section to second 17.425 of the original audio file. The first section implicitly begins at `music_in_s`. Indices 1–7 are available when those later sections exist. Anchors must be ordered, inside the selected source range, and leave readable holds. They are user directions, not automatically detected drops. Explicit scene overrides and section anchors are separate alternative timing methods.
-
-To keep other scene timing unchanged during a cue revision, read `get_project_timeline.music_sections` and anchor the other later boundaries too. Unlocked sections are replanned between locks. Reordering story blocks requires deliberate index remapping. Too many selected assets for an anchored section count is rejected rather than redistributing and losing the locked times.
-
-Review the changed moment using `render_video_project` with `preview: true`, project-relative `preview_start_s`, and `preview_duration_s` from one frame to eight seconds. For a project beginning at audio second 5, a source cue at 17.425 appears at video second 12.425; a six-second preview beginning 1.5 seconds before it uses start 10.925. Excerpts retain story identity, the original graphic/footage clocks, preceding pulse decay and per-scene motion progress. Native display time remains the full project's clock. Frame-based output still has 30 fps quantization.
-
-Preview queue/status results report project ID, saved revision and selected range. The saved project remains unchanged. Full rendering uses `preview: false` with no preview-range parameters; incompatible parameters are rejected to prevent accidental truncation. Never revise the saved music range merely to review an excerpt.
-
-```bash
-uv run fusionify-audio music-direction ANALYSIS_ID --anchors anchors.json
-uv run fusionify-audio render-project PROJECT_ID --preview --preview-start 10.925 --preview-duration 6
-uv run fusionify-audio render-project PROJECT_ID
-```
-
-Cue control and targeted ranges are currently available through MCP/CLI. The console's existing preview button still reviews the opening.
-
-### Match the music to the content
-
-v0.4 makes the music skill responsible for the edit's direction: resolve the content goal, inspect actual music, call `create_music_direction`, choose readable story holds separately from ordinary beat accents, save a project, call `review_content_fit`, inspect a preview, then render full length. Section roles are creative proposals. A content brief is recorded for the host assistant; the DSP algorithm does not understand product meaning or judge artistic quality.
-
-For a graphic story without footage, save a project with `visual_mode: "motion_graphics"`, `pacing_mode: "musical"` and `story_blocks` containing `headline`, `support`, and `visual` (`globe`, `spectrum`, `orbit`, or `market`). Native graphics use a continuous project clock, actual waveform/spectral data and a single composed text layer. Up to eight blocks are supported; a very short range may require fewer blocks to keep them readable. `brand` and `accent_color` (lime/blue/coral) customize the composition.
-
-For an already designed clip, set `text_overlay: false` to avoid adding a second title. If the clip is already synchronized to the exact selected soundtrack, `video_playback: "source_sync"` uses music source time plus video time instead of slowing its progression between still images. Explicit scene in-points take precedence. Short clips can still loop; this option cannot manufacture missing footage. Existing projects keep their beat-pacing/per-asset-clock defaults.
-
-Native `market` graphics are explicitly labeled audio-derived illustrations. They are not real transactions, geographic analytics or market prices. Supply actual business evidence separately; do not invent proof from a music waveform. `review_content_fit` reports structural risks and does not claim to see pixels or validate subjective synchronization.
-
-Native graphics implement the small pulse reactions inside held scenes. Montage musical pacing controls its major scene boundaries; supplied footage retains fixed per-scene cut/zoom/pan/shake motion rather than gaining a reaction on every beat.
-
-CLI: `uv run fusionify-audio music-direction ANALYSIS_ID --brief "Introduce the product, then close with its name"`. Use `create-project --options options.json` for the native story. The companion console retains its established upload/rhythm/montage controls; advanced v0.4 story direction is currently through MCP or CLI.
-
-### Review and correct rhythm
-
-Open **Review music timing** in the console, load the waveform, and prepare original audio or a click preview. Listen/seek, zoom the displayed source range, add/remove markers, and undo/reset unsaved changes. **Save timing copy** creates a new analysis and makes it the source for the next new project; existing projects retain their original timing. Unsaved marker edits block project creation/rendering until saved or reset. Preparing original audio retains its level; click previews lower music to 78 percent and mix soft markers. MP3 previews are re-encoded, not bit-identical to the source.
-
-The tempo-grid controls accept BPM and an absolute source-relative first beat over the full soundtrack. Tap at the playing audio's playhead at least four times for an estimate, then explicitly save a grid if wanted. For multiple BPM regions, use MCP `apply_tempo_map` or CLI:
-
-```bash
-uv run fusionify-audio tempo-map ANALYSIS_ID --regions regions.json --snap 0.03
-uv run fusionify-audio rhythm-review NEW_ANALYSIS_ID
-uv run fusionify-audio beat-preview NEW_ANALYSIS_ID --click-volume 1
-```
-
-`regions.json` is an ordered array, for example `[{"start_s":0,"end_s":12,"bpm":120,"first_beat_s":0.4},{"start_s":12,"end_s":30,"bpm":160,"first_beat_s":12.15}]` for a source at least 30 seconds long. Regions cannot overlap, each first beat is inside its region, end timestamps are exclusive, and gaps contain no grid markers. Snapping is optional, bounded to 0.1 seconds and only uses nearby measured onsets. Use the returned new analysis ID for subsequent previews/projects. `tap-tempo taps.json` accepts 4–128 ordered source-relative tap times and does not save timing itself.
-
-### Create a video
-
-> Pakai asset musik ini dan tiga foto yang sudah diupload. Buat JJ vertikal dengan seluruh durasi musik. Jangan terlalu banyak shake. Buat preview dulu, lalu render penuh setelah timing-nya cocok.
-
-Claude can inspect actual timing, create a saved project, choose a preset/intensity, render an explicitly shortened preview, revise the project, then render its full duration. Photo/video montage scenes use the selected soundtrack; original clip audio is muted. Choose cover (center crop) or contain (letterbox); short video clips may loop. Motion strength is independent of cut density. Validated scene overrides support exact image/clip placement without arbitrary filter code. When too few beat candidates are available, editorial fallback cuts are labeled separately from measured beats.
-
-For custom generated footage, create clips with a separate generation tool, register those files, then assemble them here. This repository does not include a text-to-video generation model or arbitrary per-scene code execution.
-
-## MCP tools
-
-| Flow | Tools |
+| Included skill | Its role |
 | --- | --- |
-| Workspace and assets | `get_workspace`, `list_media_assets`, `register_media_asset`, `import_media_url` |
-| Audio | `analyze_audio`, `get_audio_profile`, `get_audio_timeline`, `compare_audio` |
-| Review and correction | `render_beat_preview`, `export_audio_analysis`, `correct_beat_markers` |
-| Rhythm editing | `get_rhythm_review`, `estimate_tap_tempo`, `apply_tempo_map` |
-| Content direction | `create_music_direction`, `review_content_fit` |
-| Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
-| Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
-| Voice and script | `analyze_voice`, `get_voice_timeline`, `transcribe_audio`, `import_transcript`, `get_transcript`, `check_spoken_text`, `export_transcript` |
-| Optional provider | `describe_music` |
+| **audio-intelligence** | Inspect actual audio, review/correct rhythm, and guide voice/script checks. |
+| **music-driven-video** | Translate music and the content brief into a revisable visual story. |
+| **workspace-setup** | Configure clients, resolve inaccessible media, and recover workspace state. |
 
-Use `get_workspace` for current capabilities and limits. Ordinary DSP calls never invoke the optional provider. Returned provider descriptions are uncertain interpretations; measured timestamps remain the timing source.
+### Desktop and code editors
 
-## Operational limits
+The MCP server is the integration layer for other clients. Use each client's configuration format.
 
-- Single trusted owner workspace, not a multi-tenant SaaS. Everyone holding its token can access its assets/projects.
-- Per file: 64 MiB; audio/video duration: 180 seconds; image limit: 24 megapixels.
-- At most 16 visual assets per project, four queued/active render jobs and one render worker.
-- Final render preserves project duration. `preview=true` explicitly uses at most eight seconds and 480-pixel short side, clipping the saved sequence at the requested project-relative start rather than rearranging the story over a shorter range.
-- Render stages have time limits; completed artifacts persist. Plan storage/cleanup on the host; the application does not automatically delete older user assets or completed work.
-- HTTP artifact links expire after ten minutes. Refresh job status or export again for a new link.
-- URL imports accept direct public HTTPS media files from exact operator-allowlisted hosts. Redirects are revalidated and the resolved public IP is pinned while TLS verifies the hostname. Streaming pages, private networks and subscription bypasses are unsupported.
-- Credentials stay in server/client settings. A chat attachment must be explicitly uploaded or otherwise made accessible to the server.
-- No perceptual ground-truth validation of every musical genre, native CapCut/Premiere project export, or generative footage model is claimed.
+| Client | Configuration route | Current project support |
+| --- | --- | --- |
+| **Claude Desktop** | Local `mcpServers` entry | Configuration generator included. |
+| **Cursor** | [`.cursor/mcp.json`](https://cursor.com/docs/mcp) | Manual MCP setup; dedicated preset pending. |
+| **Kiro** | [`.kiro/settings/mcp.json`](https://kiro.dev/docs/mcp/configuration/) | Manual MCP setup; dedicated preset pending. |
+| **VS Code + Copilot** | [`.vscode/mcp.json`](https://code.visualstudio.com/docs/agents/reference/mcp-configuration), using `servers` | Manual MCP setup; dedicated preset pending. |
+| **Remote MCP clients** | Authenticated HTTPS `/mcp` endpoint | Self-hosted HTTP server; see [deployment](docs/deployment.md). |
 
-## Tests
+Generate a local Claude Desktop entry with real absolute paths:
 
 ```bash
-uv run python -m unittest discover -s tests -v
-uv run python tests/mcp_smoke.py
-uv run python tests/http_mcp_smoke.py
+python scripts/configure_client.py \
+  --client claude-desktop \
+  --media-root /absolute/path/to/media \
+  --state-root /absolute/path/to/state
 ```
 
-Browser integration, on a host that permits Chromium:
+The generator prints JSON. Add `--write /path/to/config.json` to merge a chosen file with a backup. It preserves other server entries; replacing an existing Fusionify entry requires `--replace`. Use `--uv-command /absolute/path/to/uv` if the client cannot find `uv`.
+
+MCP stdio/HTTP and the Claude plugin manifest are tested. Live GUI sessions in these clients remain separate integration checks. Companion skills follow the client's own installation mechanism.
+
+### Browser console and remote access
+
+The console provides uploads, rhythm review, project controls, previews, and downloads.
+
+```bash
+uv run --frozen fusionify-audio generate-token
+# Store the generated value in FAI_API_TOKEN in your local/server environment.
+export FAI_PUBLIC_BASE_URL="http://127.0.0.1:8000"
+uv run --frozen fusionify-audio serve-http
+```
+
+Open **http://127.0.0.1:8000/** and enter your workspace token. The console keeps the token in page memory. Uploading makes a chat attachment available to the server; attachments are not transferred automatically.
+
+For remote use, deploy behind HTTPS and configure the client with your actual `/mcp` URL and `Authorization: Bearer …` header. Client support for fixed authorization headers varies. The repository provides deployment code, rather than a public hosted endpoint. Follow the [deployment guide](docs/deployment.md) for client authentication and hosting.
+
+Use one process per state directory. A shared HTTP server is the route for multiple clients using the same workspace.
+
+## A workflow worth keeping
+
+| Step | What happens |
+| --- | --- |
+| **Analyze** | Resolve the exact soundtrack and inspect its duration, waveform, and timing estimates. |
+| **Direct** | Use the content brief to choose story blocks and readable holds; keep micro reactions separate from major cuts. |
+| **Review** | Listen to timing markers, inspect a preview, and lock important source-time cues. |
+| **Revise** | Adjust a saved project against its current revision, preserving the choices you want to keep. |
+| **Render** | Export the full saved project and any matching subtitle or timeline sidecars. |
+
+> Pakai seluruh durasi musik ini untuk video produk vertikal. Buka dengan globe, beri ruang untuk pesannya, lalu tutup dengan nama brand. Gerak kecil mengikuti ritme, shake secukupnya. Buat preview dulu supaya timing bisa diperiksa.
+
+See [editing workflows](docs/workflows.md) for native story options, exact cue placement, targeted previews, source-synchronized footage, and multi-region tempo maps. See [all 36 tools](docs/tools.md) for the MCP tool map and workspace limits.
+
+## Optional audio intelligence
+
+<details>
+<summary><strong>Local speech transcription, script checking, and subtitles</strong></summary>
+
+Voice delivery measurements work in the base installation. Automatic transcription additionally needs the `speech` extra and a compatible, complete local Whisper model directory:
+
+```bash
+uv sync --frozen --extra speech
+export FAI_WHISPER_MODEL_DIR="/absolute/path/to/converted-whisper-model"
+uv run --frozen --extra speech fusionify-audio serve
+```
+
+Keep `--extra speech` in the actual client launch command. Model weights are prepared separately; tools do not download them. Imported transcripts stay explicitly unverified against audio.
+
+v0.6.1 passes validated PCM directly into the local backend, handles exact digital silence with explicit provenance, and flags estimated words for listening review. A real local-model smoke run covers synthetic English narration and music beds; it does not establish Indonesian, singing, or real remix accuracy.
+
+[Voice setup and examples](docs/voice-review.md) · [Recorded verification results](docs/verification.md#real-local-model-check-v061)
+
+</details>
+
+<details>
+<summary><strong>Opt-in music interpretation with Gemini</strong></summary>
+
+The optional Gemini adapter can provide mood, texture, and visual suggestions. It requires operator configuration, explicit user agreement to external audio processing, and may incur provider charges. DSP analysis never invokes it silently. Provider descriptions are interpretations; timing still comes from measured or user-corrected markers.
+
+[Configure the optional provider](docs/deployment.md#optional-gemini-interpretation)
+
+</details>
+
+## Documentation
+
+| Guide | Go here for |
+| --- | --- |
+| [Editing workflows](docs/workflows.md) | Story direction, timing corrections, cue locks, previews, and footage controls. |
+| [MCP tool reference](docs/tools.md) | The complete tool map, output behavior, and operational limits. |
+| [Voice and script review](docs/voice-review.md) | Local ASR, transcript provenance, script comparisons, and subtitle timing. |
+| [Deployment](docs/deployment.md) | Docker, HTTPS, tokens, uploads, URL imports, and remote clients. |
+| [Verification](docs/verification.md) | What was tested, observed model errors, browser checks, and remaining gaps. |
+| [Specification](SPEC.md) | Product intent and implementation contracts. |
+
+## Development and verification
+
+The current backend suite has **48 tests**. Separate checks cover real MCP handshakes over stdio and TCP HTTP, browser workflows, strict plugin validation, and the container build.
+
+```bash
+uv run --frozen python -m unittest discover -s tests -v
+uv run --frozen python tests/mcp_smoke.py
+uv run --frozen python tests/http_mcp_smoke.py
+```
+
+Browser checks, on a host that permits Chromium:
 
 ```bash
 npm ci
@@ -227,12 +242,13 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-Tests cover known synthetic beats, silence, file boundaries, URL destination checks, revisions, persistence, cancellation, authenticated uploads/downloads, real media render/audio-offset checks, and actual stdio/HTTP MCP handshakes. Browser tests exercise connect → upload → analyze → project → montage → export → revision on desktop plus responsive checks. Optional Gemini tests are mocked and send no audio externally. Copyrighted music is not included in fixtures.
+Optional provider contracts use mocks. The opt-in [local-model smoke script](tests/local_speech_smoke.py) runs actual inference using a separately prepared model. Synthetic fixtures keep the repository tests independent of commercial soundtracks. Full test scope and practical limits are recorded in [verification notes](docs/verification.md).
 
-## References
+For bug reports, include your client, runtime versions, source format/duration, steps to reproduce, and expected behavior. Small synthetic fixtures make timing problems easier to investigate.
 
-- [Claude plugin documentation](https://code.claude.com/docs/en/plugins)
-- [Claude custom connectors](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), maintained v1 API used here
-- [Gemini audio understanding](https://ai.google.dev/gemini-api/docs/audio)
-- [Specification](SPEC.md)
+---
+
+<p align="center">
+  Built by <a href="https://github.com/FUSIONIFY-ID"><strong>FUSIONIFY</strong></a>.<br />
+  <sub>Start with the sound. Give the story a direction.</sub>
+</p>
