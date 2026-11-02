@@ -54,7 +54,9 @@ jobs:
       - name: Validate Claude plugin manifest
         run: npx --yes @anthropic-ai/claude-code@2.1.316 plugin validate . --strict
       - name: Real Claude Code CLI connection
-        run: python tests/claude_connection_smoke.py
+        run: |
+          python -m pip install uv
+          python tests/claude_connection_smoke.py
       - name: Discover standalone skills
         run: npx --yes skills@1.7.4 add . --list
         env:
