@@ -108,6 +108,18 @@ Want your agent to direct the edit? Connect it to the same workspace below.
 
 ## Connect your agent
 
+### Claude Desktop extension
+
+1. Install uv and FFmpeg (including ffprobe). Create a folder for the music and footage you want to edit.
+2. [Download the Fusionify Desktop extension](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/raw/refs/heads/main/downloads/fusionify-audio.mcpb).
+3. In Claude Desktop, open **Settings → Desktop app → Manage** next to **Extensions**, then **Advanced settings → Install Extension**. Select the downloaded file. In older versions use **Settings → Extensions**.
+4. Choose your media folder in the extension settings. If the app cannot find your tools, enter the full path to uv (uv.exe on Windows) and choose the directory containing ffmpeg and ffprobe. The first launch downloads the locked Python dependencies.
+5. Put a file such as `track.mp3` in the selected folder. In a new conversation with Fusionify enabled, try:
+
+> Pakai Fusionify untuk analisis track.mp3 sampai selesai. Tampilkan durasi, estimasi BPM, dan tiga usulan waktu cut untuk video JJ. Pakai aksen yang terdeteksi di musik.
+
+The extension includes the MCP engine. Use the filename relative to the folder you chose. A chat attachment alone does not put a file in that folder. Local project state and renders default to `~/.fusionify-audio-desktop/state`.
+
 ### Claude Code plugin
 
 Set the media/state environment variables in the shell that launches Claude, then install:
@@ -116,6 +128,8 @@ Set the media/state environment variables in the shell that launches Claude, the
 /plugin marketplace add FUSIONIFY-ID/Fusionify_Audio_Intelligence
 /plugin install fusionify-audio-intelligence@fusionify-audio
 ```
+
+Open `/mcp` to check the Fusionify connection. You can use the same music prompt as above.
 
 For a local checkout:
 
@@ -131,11 +145,11 @@ claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 
 ### Native plugins and code editors
 
-Plugin bundle **v0.7.2** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
+Plugin bundle **v0.7.3** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
 
 | Client | Configuration route | Current project support |
 | --- | --- | --- |
-| **Claude Desktop** | Local `mcpServers` entry | Configuration generator included. |
+| **Claude Desktop** | Install the Desktop extension above | Includes a media-folder picker. Manual JSON setup is also available. |
 | **Cursor** | Native plugin / Agent Plugins | Source manifests and repository marketplace included; public review remains separate. |
 | **Kiro** | GitHub/folder power import | Agent Plugins package included. |
 | **VS Code + Copilot** | Agent Customizations → plugin from source | Portable plugin and custom-marketplace route in compatible versions. |
@@ -149,7 +163,7 @@ npx skills add FUSIONIFY-ID/Fusionify_Audio_Intelligence
 
 A skills-only install supplies instructions. Connect the MCP runtime to process music or render videos. Native plugins need `uvx`, Git, FFmpeg, and an existing `FAI_MEDIA_ROOT` folder; the first launch fetches the documented pinned engine. Source packages are separate from curated public marketplace listings.
 
-Generate a local Claude Desktop entry with real absolute paths:
+For manual Desktop setup, generate an entry with real absolute paths:
 
 ```bash
 python scripts/configure_client.py \

@@ -1,5 +1,11 @@
 # Verification notes
 
+## Claude installation, bundle v0.7.3
+
+The install check uses an isolated Claude Code configuration, adds the repository marketplace, installs the plugin, and checks its connection in the official CLI. An MCP client uses the installed launcher to open an MP3 and request music direction. It repeats those calls with the launcher extracted from the shipped Desktop extension and the media-folder setting applied. The test includes paths containing spaces and uses no model account credentials. The workflow also validates the Desktop manifest and compares the shipped extension files with a fresh build.
+
+These checks cover package contents, tool discovery, audio decoding, and timing analysis. Native Desktop installation dialogs on Windows and macOS, authenticated Claude chat, and a public claude.ai connector require separate live verification.
+
 ## Realistic footage workflow, bundle v0.7.2
 
 The music/video skill now includes a reference-based realism workflow covering provenance/attribution, surface versus atmosphere, lighting, occlusion, rings, readable labels, cinematic scale/time and source-clock assembly. It explicitly distinguishes fixed stylized native graphics from externally rendered or supplied realistic footage. Testing feedback is described as evidence for a skill/code revision, not automatic model training.

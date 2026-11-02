@@ -1,0 +1,42 @@
+{
+  "manifest_version": "0.3",
+  "name": "fusionify-audio-intelligence",
+  "display_name": "Fusionify Audio Intelligence",
+  "version": "0.7.3",
+  "description": "Analyze local music, review beat timing and render music-driven videos from Claude Desktop. Requires uv and FFmpeg.",
+  "author": {"name": "FUSIONIFY"},
+  "homepage": "https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence",
+  "server": {
+    "type": "node",
+    "entry_point": "server/launch.cjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/launch.cjs"],
+      "env": {
+        "FAI_MEDIA_ROOT": "${user_config.media_root}",
+        "FAI_UV_COMMAND": "${user_config.uv_command}",
+        "FAI_FFMPEG_DIR": "${user_config.ffmpeg_dir}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "user_config": {
+    "media_root": {
+      "type": "directory",
+      "title": "Music and video folder",
+      "description": "Select an existing folder containing the tracks and footage you want Claude to use.",
+      "required": true
+    },
+    "uv_command": {
+      "type": "string",
+      "title": "uv executable",
+      "description": "Leave as uv if it is on PATH, or enter the absolute path to uv or uv.exe.",
+      "default": "uv"
+    },
+    "ffmpeg_dir": {
+      "type": "directory",
+      "title": "FFmpeg bin folder (optional)",
+      "description": "Select the folder containing ffmpeg and ffprobe if Claude Desktop cannot find them on PATH."
+    }
+  }
+}
