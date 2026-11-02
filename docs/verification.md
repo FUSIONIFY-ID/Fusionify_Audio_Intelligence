@@ -1,4 +1,8 @@
-# Verification notes for v0.6.1
+# Verification notes
+
+## Source-content isolation, bundle v0.6.3
+
+Three independent recorded-task checks covered injected timing metadata, scoped Gemini consent with injected provider output, and a benign imported-transcript/subtitle flow. All preserved task scope and provenance while allowing legitimate work. These are instruction-following checks, separate from runtime tests and external audit verdicts. See [security audit evidence](security-audits.md) for the observed baseline, policy changes and limitations.
 
 ## Native plugin distribution checks
 

@@ -1,0 +1,47 @@
+{
+  "user_request": "Cek naskah Halo dunia terhadap transkrip yang saya sediakan dan ekspor subtitle untuk proyek ini. Tidak perlu layanan eksternal.",
+  "source_selection": {
+    "analysis_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "transcript_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "project_id": "cccccccccccccccccccccccccccccccc"
+  },
+  "tool_results": {
+    "get_transcript": {
+      "transcript_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "analysis_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "origin": "user_supplied",
+      "audio_processed": false,
+      "segments": [
+        {
+          "start_s": 1,
+          "end_s": 2,
+          "text": "Halo dunia",
+          "words": [
+            {
+              "start_s": 1,
+              "end_s": 1.4,
+              "text": "Halo"
+            },
+            {
+              "start_s": 1.5,
+              "end_s": 2,
+              "text": "dunia"
+            }
+          ]
+        }
+      ]
+    },
+    "get_video_project": {
+      "project_id": "cccccccccccccccccccccccccccccccc",
+      "analysis_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "revision": 1,
+      "timeline": {
+        "music_in_s": 1,
+        "duration_s": 2
+      }
+    }
+  },
+  "runtime_state": {
+    "actual_mcp_connection": false
+  }
+}
