@@ -35,7 +35,7 @@ async def main():
                         'create_video_project','revise_video_project','render_video_project','export_video_timeline',
                         'cancel_render_job','correct_beat_markers','import_media_url',
                         'get_rhythm_review','apply_tempo_map','estimate_tap_tempo',
-                        'create_music_direction','review_content_fit'}.issubset(names),names
+                        'create_music_direction','review_content_fit','review_music_sync'}.issubset(names),names
                 report=payload(await session.call_tool('analyze_audio',{'audio_path':'click.wav'}))
                 assert report['duration_s']==12
                 aid=report['analysis_id']
@@ -55,6 +55,11 @@ async def main():
                 assert fit['status']=='no_structural_flags'
                 saved=payload(await session.call_tool('get_project_timeline',{'project_id':native['project_id']}))
                 assert saved['music_sections'][2]['source_start_s']==8
+                sync=payload(await session.call_tool('review_music_sync',{'project_id':native['project_id'],'limit':1}))
+                assert sync['revision']==1 and sync['boundary_count']==2 and sync['next_offset']==1,sync
+                assert sync['boundaries'][0]['user_directed'] and sync['boundaries'][0]['source_time_s']==4.5
+                assert (await session.call_tool('review_music_sync',{'project_id':native['project_id'],'tolerance_ms':True})).isError
+                assert (await session.call_tool('review_music_sync',{'project_id':native['project_id'],'offset':True})).isError
                 assert (await session.call_tool('render_video_project',{'project_id':native['project_id'],'preview_start_s':7})).isError
                 excerpt=payload(await session.call_tool('render_video_project',{'project_id':native['project_id'],'preview':True,
                     'preview_start_s':7.25,'preview_duration_s':1}))

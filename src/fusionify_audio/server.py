@@ -252,6 +252,20 @@ def build_server(service: Service, http: bool=False, allowed_hosts: list[str]|No
         return service.content_fit(project_id)
 
     @mcp.tool(annotations=read)
+    def review_music_sync(project_id: str, tolerance_ms: Number=80, offset: StrictInt=0, limit: StrictInt=100) -> dict:
+        """Review saved scene cuts against pulse/energy candidates at full-render frame times.
+
+        Read-only, paginated evidence with source/video clocks, signed offsets in milliseconds,
+        marker provenance and up to three project-relative listening preview ranges.
+        Positive offset means the cut follows the candidate. Tolerance is 0-250 ms, not accuracy.
+        Intentional editorial cuts may be far from candidates. No automatic corrections or drop detection.
+        Continuous waveform visualizers have no scene boundaries. Check revision before rendering
+        a suggested range; pass only project_id, preview, preview_start_s and preview_duration_s
+        to render_video_project. Inspect the actual audio/video before proposing revisions.
+        """
+        return service.music_sync(project_id,tolerance_ms,offset,limit)
+
+    @mcp.tool(annotations=read)
     def get_project_timeline(project_id: str, offset: int=0, limit: int=100) -> dict:
         """Get a page of saved render scenes. Scene times are video-relative, with music_in_s supplied."""
         if not 0<=offset or not 1<=limit<=500:raise ValueError('Invalid page range.')

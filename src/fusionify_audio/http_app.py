@@ -118,7 +118,7 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         if filename not in ('app.js','app.css'):return Response(status_code=404)
         return FileResponse(web/filename,media_type='text/javascript' if filename.endswith('.js') else 'text/css')
 
-    async def health(request):return JSONResponse({'status':'ok','version':'0.6.1'})
+    async def health(request):return JSONResponse({'status':'ok','version':'0.7.0'})
 
     async def upload(request: Request):
         filename=unquote(request.headers.get('x-filename',''))
@@ -161,6 +161,7 @@ def build_http_app(service: Service, token: str, public_base_url: str):
         'create_video_project':lambda **kw:project_summary(service.create_project(**kw)),
         'get_video_project':lambda **kw:project_summary(service.project(**kw)),
         'review_content_fit':service.content_fit,
+        'review_music_sync':service.music_sync,
         'revise_video_project':lambda **kw:project_summary(service.revise_project(**kw)),
         'render_video_project':service.render_project,'render_visualizer':service.render,
         'get_job_status':service.status,'cancel_render_job':service.cancel_job,

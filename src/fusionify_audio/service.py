@@ -19,6 +19,7 @@ from .project import ProjectOptions, preview_excerpt, project_timeline
 from .render import edit_plan, visualizer
 from .rhythm import estimate_taps, tempo_map_beats
 from .direction import music_direction
+from .sync_review import review_music_sync
 from .store import Store, identifier
 from .voice_service import VoiceTools
 
@@ -56,7 +57,7 @@ class Service(VoiceTools):
     def workspace(self) -> dict:
         from .semantic import availability
         from .speech import availability as speech_availability
-        return {'version':'0.6.1','mode':'single-owner workspace','upload_url':self.upload_url,
+        return {'version':'0.7.0','mode':'single-owner workspace','upload_url':self.upload_url,
                 'styles':['jj','cinematic','promo','minimal'],'aspects':['9:16','16:9','1:1'],
                 'url_import_hosts':sorted(self.import_hosts),'max_audio_duration_s':180,
                 'semantic_audio':availability(),
@@ -64,6 +65,8 @@ class Service(VoiceTools):
                 'rhythm_editing':{'tempo_regions':32,'bpm_range':[30,300],'max_snap_tolerance_s':.1,'max_manual_markers':2000},
                 'music_direction':{'pacing_modes':['beat','musical'],'native_visuals':['globe','spectrum','orbit','market'],
                                    'max_story_blocks':8,'editorial_sections_are_proposals':True},
+                'music_sync_review':{'tolerance_ms_range':[0,250],'default_tolerance_ms':80,
+                                     'max_page_size':100,'max_suggested_previews':3,'read_only':True},
                 'note':'Attachments require explicit upload. DSP timing is estimated; semantic audio is separately opt-in.'}
 
     def describe_audio(self, analysis_id: str, question: str, allow_external_processing: bool=False) -> dict:
@@ -261,6 +264,10 @@ class Service(VoiceTools):
                 'accent_count':direction['accent_count'] if direction else len(timeline['events']),
                 'flags':flags,'illustration_note':'Native market graphics use audio amplitudes, not business or financial data.',
                 'note':'Structural checks do not establish semantic content fit or perceptual synchronization. Inspect visuals and listen before publishing.'}
+
+    def music_sync(self, project_id: str, tolerance_ms: float=80, offset: int=0, limit: int=100) -> dict:
+        project=self.project(project_id)
+        return review_music_sync(project,self.record(project['analysis_id'])['report'],tolerance_ms,offset,limit)
 
     def list_projects(self, limit: int=50) -> list[dict]:
         return [{k:v for k,v in p.items() if k!='timeline'} | {'duration_s':p['timeline']['duration_s'],

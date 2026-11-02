@@ -64,6 +64,9 @@ async def main():
                         project=result_data(await session.call_tool('create_video_project',{'analysis_id':aid,'options':{
                             'visual_mode':'motion_graphics','story_blocks':[{'headline':h} for h in ['Open','Middle','Close']],
                             'section_anchors':[{'section_index':1,'source_time_s':4.5}]}}))
+                        sync=result_data(await session.call_tool('review_music_sync',{'project_id':project['project_id']}))
+                        assert sync['boundary_count']==2 and sync['boundaries'][0]['source_time_s']==4.5,sync
+                        assert sync['suggested_previews'] and sync['revision']==1
                         excerpt=result_data(await session.call_tool('render_video_project',{'project_id':project['project_id'],
                             'preview':True,'preview_start_s':5,'preview_duration_s':1}))
                         for _ in range(120):

@@ -1,4 +1,10 @@
-# Fusionify Audio Intelligence v0.6.1
+# Fusionify Audio Intelligence v0.7.0
+
+## Music/video timing review v0.7
+
+Add a read-only `review_music_sync` tool and CLI/HTTP equivalents for saved projects. Compare actual renderer frame boundaries against the selected analysis's pulse markers and measured energy-rise candidates inside the project's source range. Report source/video clocks, signed millisecond offsets, frame quantization, per-marker provenance and user-directed boundaries. Continuous visualizers have no scene cuts. Do not call proximity perceptual accuracy, infer drops/downbeats, silently change timing, or treat an intentional editorial boundary as an error.
+
+Return bounded pages with full-project counts and at most three bounded project-relative preview requests, prioritizing boundaries outside the caller's tolerance. Distinguish no candidates from no boundaries. Preserve project revision and analysis identity. Test trimmed sources, render-specific frame clocks, silence, corrected-marker provenance, boundary limits, pagination, strict arguments, project immutability and actual MCP/HTTP/CLI use. Update the music skill to use review evidence and listen to selected excerpts before proposing changes.
 
 ## Source-content isolation (bundle v0.6.3)
 

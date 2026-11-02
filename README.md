@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml"><img src="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml/badge.svg?branch=main" alt="CI status" /></a>
-  <a href="pyproject.toml"><img src="https://img.shields.io/badge/engine-0.6.1-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Engine version 0.6.1" /></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/engine-0.7.0-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Engine version 0.7.0" /></a>
   <a href="#quick-start"><img src="https://img.shields.io/badge/Python-3.11%2B-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Python 3.11 or newer" /></a>
   <a href="docs/tools.md"><img src="https://img.shields.io/badge/MCP-stdio%20%2B%20HTTP-c0ff58?style=flat-square&amp;labelColor=111b28" alt="MCP over stdio and HTTP" /></a>
 </p>
@@ -32,7 +32,9 @@ Fusionify Audio Intelligence gives Claude and MCP-compatible agents a practical 
 
 **Local processing by default · Full soundtrack by default · Timing you can inspect and revise**
 
-The current toolkit includes **36 MCP tools**, **3 companion skills**, a Python CLI, and an authenticated creator console. The core workflow runs without a paid model API.
+The current toolkit includes **37 MCP tools**, **3 companion skills**, a Python CLI, and an authenticated creator console. The core workflow runs without a paid model API.
+
+**New in v0.7:** [review cut timing against the music](docs/sync-review.md). Inspect signed millisecond offsets, renderer frame rounding, marker provenance and suggested listening excerpts before revising a scene. The review preserves intentional story cues and does not auto-snap cuts.
 
 ## See the output
 
@@ -189,7 +191,7 @@ Use one process per state directory. A shared HTTP server is the route for multi
 
 > Pakai seluruh durasi musik ini untuk video produk vertikal. Buka dengan globe, beri ruang untuk pesannya, lalu tutup dengan nama brand. Gerak kecil mengikuti ritme, shake secukupnya. Buat preview dulu supaya timing bisa diperiksa.
 
-See [editing workflows](docs/workflows.md) for native story options, exact cue placement, targeted previews, source-synchronized footage, and multi-region tempo maps. See [all 36 tools](docs/tools.md) for the MCP tool map and workspace limits.
+See [editing workflows](docs/workflows.md) for native story options, exact cue placement, targeted previews, source-synchronized footage, and multi-region tempo maps. See [all 37 tools](docs/tools.md) for the MCP tool map and workspace limits.
 
 ## Optional audio intelligence
 

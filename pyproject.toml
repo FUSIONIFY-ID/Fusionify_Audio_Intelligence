@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fusionify-audio-intelligence"
-version = "0.6.1"
+version = "0.7.0"
 description = "Audio timing analysis and music-driven visualizers for Claude through MCP."
 readme = "README.md"
 requires-python = ">=3.11"

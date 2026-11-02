@@ -35,6 +35,10 @@ Native graphics implement the small pulse reactions inside held scenes. Montage 
 
 CLI: `uv run fusionify-audio music-direction ANALYSIS_ID --brief "Introduce the product, then close with its name"`. Use `create-project --options options.json` for the native story. The companion console retains its established upload/rhythm/montage controls; advanced story direction is currently through MCP or CLI.
 
+## Review saved cut timing
+
+Use `review_music_sync` to compare saved scene cuts with pulse and energy-rise candidates on the actual full-render frame clock. Inspect source/video offsets, provenance and locked cues, then listen to suggested project-relative excerpts. The tool is read-only; a distant candidate does not invalidate an intentional story cut. See [timing review](sync-review.md) for pagination, tolerance and preview arguments.
+
 ## Review and correct rhythm
 
 Open **Review music timing** in the console, load the waveform, and prepare original audio or a click preview. Listen/seek, zoom the displayed source range, add/remove markers, and undo/reset unsaved changes. **Save timing copy** creates a new analysis and makes it the source for the next new project; existing projects retain their original timing. Unsaved marker edits block project creation/rendering until saved or reset. Preparing original audio retains its level; click previews lower music to 78 percent and mix soft markers. MP3 previews are re-encoded, not bit-identical to the source.

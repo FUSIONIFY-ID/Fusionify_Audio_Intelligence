@@ -1,5 +1,13 @@
 # Verification notes
 
+## Music/video cut timing review v0.7
+
+Eight new tests cover trimmed source clocks, renderer-specific frame quantization, signed offsets and tolerance boundaries, in-range candidate filtering, user marker provenance, locked cues, no-reference/continuous-visualizer cases, skipped zero-frame montage scenes, bounded pagination/previews, strict arguments, project immutability, persistence and CLI use. The backend suite now contains 56 tests. Actual montage encoding confirms a requested 1.01-second cut changes from red to blue at frame 30, matching the diagnostic's 1.00-second render time. Native `MotionFrames.state` is checked immediately before and at its reported first section frame.
+
+Real stdio and TCP Streamable HTTP MCP smoke flows call `review_music_sync` on saved native projects, including source offsets, locked boundaries and pagination; stdio also checks boolean argument rejection. The authenticated HTTP console API checks no-boundary behavior and malformed tolerance. The server now exposes 37 tools. A fresh agent using only the revised music skill and a recorded task preserved user-directed cues, distinguished early/late candidate offsets from a subjective complaint, proposed revision-checked local preview calls, and made no automatic edits or external-processing claim.
+
+These checks establish deterministic timing/reporting behavior on synthetic fixtures. They do not prove human-perceived sync on the user's music, identify true drops/downbeats, validate current audio bytes, or establish semantic video quality. The new review is available through MCP/CLI/HTTP API, with no new console controls. External security audit verdicts remain separate.
+
 ## Source-content isolation, bundle v0.6.3
 
 Three independent recorded-task checks covered injected timing metadata, scoped Gemini consent with injected provider output, and a benign imported-transcript/subtitle flow. All preserved task scope and provenance while allowing legitimate work. These are instruction-following checks, separate from runtime tests and external audit verdicts. See [security audit evidence](security-audits.md) for the observed baseline, policy changes and limitations.

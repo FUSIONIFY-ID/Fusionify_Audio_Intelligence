@@ -2,7 +2,7 @@
 
 [← Back to the overview](../README.md) · [Editing workflows](workflows.md)
 
-The current server exposes **36 tools**. Call `get_workspace` to inspect the running server's capabilities and configuration.
+The current server exposes **37 tools**. Call `get_workspace` to inspect the running server's capabilities and configuration.
 
 ## Tool map
 
@@ -13,7 +13,7 @@ The current server exposes **36 tools**. Call `get_workspace` to inspect the run
 | Audio | `analyze_audio`, `get_audio_profile`, `get_audio_timeline`, `compare_audio` |
 | Review and correction | `render_beat_preview`, `export_audio_analysis`, `correct_beat_markers` |
 | Rhythm editing | `get_rhythm_review`, `estimate_tap_tempo`, `apply_tempo_map` |
-| Content direction | `create_music_direction`, `review_content_fit` |
+| Content direction | `create_music_direction`, `review_content_fit`, `review_music_sync` |
 | Projects | `create_edit_plan`, `create_video_project`, `get_video_project`, `get_project_timeline`, `list_video_projects`, `revise_video_project` |
 | Render and export | `render_video_project`, `render_visualizer`, `get_job_status`, `list_render_jobs`, `cancel_render_job`, `export_video_timeline` |
 | Voice and script | `analyze_voice`, `get_voice_timeline`, `transcribe_audio`, `import_transcript`, `get_transcript`, `check_spoken_text`, `export_transcript` |

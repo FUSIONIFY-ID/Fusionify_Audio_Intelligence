@@ -65,6 +65,10 @@ class HTTPTests(unittest.TestCase):
                     self.assertEqual(direction['duration_s'],3)
                     self.assertNotIn('accents',direction)
                     self.assertEqual(call('review_content_fit',{'project_id':project['project_id']})['status'],'no_structural_flags')
+                    self.assertEqual(call('review_music_sync',{'project_id':project['project_id']})['status'],'no_scene_boundaries')
+                    bad=client.post('/api/call',headers=headers,json={'operation':'review_music_sync','arguments':{
+                        'project_id':project['project_id'],'tolerance_ms':True}})
+                    self.assertEqual(bad.status_code,400)
                     exported=call('export_video_timeline',{'project_id':project['project_id'],'format':'json'})
                     link=urlsplit(exported['download_url'])
                     downloaded=client.get(link.path+'?'+link.query)
