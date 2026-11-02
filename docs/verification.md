@@ -1,5 +1,13 @@
 # Verification notes
 
+## Realistic footage workflow, bundle v0.7.2
+
+The music/video skill now includes a reference-based realism workflow covering provenance/attribution, surface versus atmosphere, lighting, occlusion, rings, readable labels, cinematic scale/time and source-clock assembly. It explicitly distinguishes fixed stylized native graphics from externally rendered or supplied realistic footage. Testing feedback is described as evidence for a skill/code revision, not automatic model training.
+
+A fresh agent received only the revised skill, a realistic solar-system request and recorded workspace/profile/reference metadata. It did not claim a live connection, native photorealistic planet support, a completed render or trained weights. It identified that the supplied texture manifest lacked a Venus reference and proposed completing appropriate cloudy-atmosphere assets before claiming eight planets. It preserved full audio and separate inspection of source imagery, timing, pixels and actual artifacts. This is an instruction-following check, not a renderer-quality or security guarantee.
+
+The accompanying creative test uses independently authored 3D footage mapped from attributed Solar System Scope surfaces. Venus's opaque atmosphere, Earth's cloud layer, stars and ring structure are procedural representations, with adjusted displayed distances, sizes and motion timing. Such assets are not scientific observations or a new built-in planet-rendering mode. The engine remains v0.7.0 with 37 tools and 61 backend tests; this bundle changes skill guidance and packaging metadata.
+
 ## Generated editor setup and installed-package render, bundle v0.7.1
 
 The setup helper now produces client-specific Cursor, Kiro and VS Code configurations while retaining Claude Code/Desktop. Seven configuration tests cover collection/transport shapes, the exact portable pin, explicit destinations and replacement, preservation of other servers/fields, backups, malformed JSON/JSONC refusal, client mismatch, media-directory validation and secret-reference output. Five tests are new, bringing the backend suite to 61. The distribution validator now checks that documentation's current engine pin matches mcp.json.

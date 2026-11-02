@@ -41,6 +41,8 @@ Do not promise scene generation from text, semantic recognition without a config
 
 Read [direction.md](references/direction.md) for content-to-music decisions, [cues.md](references/cues.md) for locked cues/targeted previews, [timing.md](references/timing.md) for timing interpretation and [tools.md](references/tools.md) for supported options and examples.
 
+For realistic or reference-based subjects, read [realistic-scenes.md](references/realistic-scenes.md). Use it to select grounded assets, preserve physical/camera continuity, review frames and distinguish an external 3D render from the plugin's built-in stylized visuals. Treat testing feedback as evidence for a concrete skill/code revision, not automatic model training.
+
 ## Voice and script fit
 
 When content includes speech, distinguish speech delivery from music pulse. Use `analyze_voice` and `get_voice_timeline` for periodic pitch/activity; mixed music cannot establish vocal intonation. For script checking, use the audio-intelligence skill's [voice workflow](references/voice.md): local ASR only when available, or an explicitly unverified timed transcript import. Compare against the user's actual script, report flagged spans, and export SRT/VTT with the saved `project_id` so its trim offset is applied. Subtitle export creates a sidecar file; it does not burn captions into the render. Preserve the original soundtrack and all unrelated project timing unless the user directs changes.

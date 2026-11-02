@@ -1,5 +1,11 @@
 # Fusionify Audio Intelligence v0.7.0
 
+## Realistic scene workflow (bundle v0.7.2)
+
+Extend the music/video skill with a reusable realism review: ground subject appearance in attributable references, distinguish observed imagery from generated visualization, and disclose adjusted time/scale when material. For astronomy, review surfaces versus atmospheres, illumination, occlusion, rings and readable labels. Match music through editorial cuts and restrained camera accents while preserving a coherent world. Do not physically deform realistic subjects on each beat.
+
+Keep runtime capabilities explicit. The built-in globe/orbit/spectrum/market visuals are stylized; realistic 3D footage requires a separate renderer or supplied assets, then normal registration/project/render tools. Preserve source clocks, frame-rounded boundaries, complete audio and existing artifacts. Validate actual frames and audio separately from structural flags. Describe development as tests, skill revisions and validation; do not claim that a demo trains model weights or adds a renderer to the installed plugin.
+
 ## Editor setup and installed-package render verification (bundle v0.7.1)
 
 Extend the explicit config generator to Cursor, Kiro and VS Code while retaining Claude Code/Desktop. Use each client's documented server collection, transport fields and environment-reference syntax. Offer both a frozen checkout launcher and the commit-pinned portable launcher read from mcp.json. Resolve selected media/state paths, preserve unrelated config, back up intentional replacements, reject malformed JSON rather than rewriting JSONC, and never copy a live token or grant blanket tool approval. Print a configuration by default; write only to the explicitly selected destination.

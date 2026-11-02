@@ -2,7 +2,7 @@
 
 [← Overview](../README.md) · [Deployment](deployment.md) · [Verification](verification.md)
 
-Plugin bundle **v0.7.1** packages the three skills and the tested **v0.7.0 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
+Plugin bundle **v0.7.2** packages the three skills and the tested **v0.7.0 engine** launcher together for native plugin clients. The skills CLI can also install the instructions separately.
 
 | Route | Files in this repository | What is available |
 | --- | --- | --- |

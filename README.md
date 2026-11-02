@@ -131,7 +131,7 @@ claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 
 ### Native plugins and code editors
 
-Plugin bundle **v0.7.1** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
+Plugin bundle **v0.7.2** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes. See [security audit evidence and limitations](docs/security-audits.md) for source-content isolation and external audit status.
 
 | Client | Configuration route | Current project support |
 | --- | --- | --- |
