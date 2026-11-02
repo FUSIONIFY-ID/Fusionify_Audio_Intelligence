@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "fusionify-audio": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence@8779ff860e465e62325e0f0299fdeacded10fcf5",
+        "fusionify-audio",
+        "serve"
+      ],
+      "env": {
+        "FAI_MEDIA_ROOT": "${FAI_MEDIA_ROOT}"
+      }
+    }
+  }
+}

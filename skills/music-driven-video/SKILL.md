@@ -5,7 +5,7 @@ description: Match actual music to a user's video content, story and visual dire
 
 # Music-driven video
 
-Use Fusionify MCP tools when available. Keep replies in the user's language. This skill directs tools; it does not decode audio on its own.
+Use Fusionify MCP tools when available. Installing this skill alone supplies instructions, not an audio engine. If the tools are absent, use the [plugin/runtime setup guide](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/blob/main/docs/distribution.md); do not invent audio measurements or pretend to render a file. Keep replies in the user's language. This skill directs tools; it does not decode audio on its own.
 
 ## Create a video
 
@@ -41,4 +41,4 @@ Read [direction.md](references/direction.md) for content-to-music decisions, [cu
 
 ## Voice and script fit
 
-When content includes speech, distinguish speech delivery from music pulse. Use `analyze_voice` and `get_voice_timeline` for periodic pitch/activity; mixed music cannot establish vocal intonation. For script checking, use the audio-intelligence skill's [voice workflow](../audio-intelligence/references/voice.md): local ASR only when available, or an explicitly unverified timed transcript import. Compare against the user's actual script, report flagged spans, and export SRT/VTT with the saved `project_id` so its trim offset is applied. Subtitle export creates a sidecar file; it does not burn captions into the render. Preserve the original soundtrack and all unrelated project timing unless the user directs changes.
+When content includes speech, distinguish speech delivery from music pulse. Use `analyze_voice` and `get_voice_timeline` for periodic pitch/activity; mixed music cannot establish vocal intonation. For script checking, use the audio-intelligence skill's [voice workflow](references/voice.md): local ASR only when available, or an explicitly unverified timed transcript import. Compare against the user's actual script, report flagged spans, and export SRT/VTT with the saved `project_id` so its trim offset is applied. Subtitle export creates a sidecar file; it does not burn captions into the render. Preserve the original soundtrack and all unrelated project timing unless the user directs changes.

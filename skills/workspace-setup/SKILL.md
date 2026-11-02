@@ -1,11 +1,13 @@
 ---
 name: workspace-setup
-description: Set up or troubleshoot Fusionify Audio Intelligence for Claude Code, Desktop, and remote web connectors. Use for plugin/MCP installation, inaccessible uploads, authentication errors, expired downloads, interrupted jobs, or workspace recovery.
+description: Set up or troubleshoot Fusionify Audio Intelligence for Claude, Cursor, Kiro, VS Code, skills.sh, and remote MCP clients. Use for plugin/MCP installation, inaccessible uploads, authentication errors, expired downloads, interrupted jobs, or workspace recovery.
 ---
 
 # Workspace setup and recovery
 
-- Read the repository README and `docs/deployment.md` before configuring a host. Use `fusionify-audio doctor` to inspect FFmpeg availability and documented limits.
+Read [installation routes](references/install.md) before selecting native plugin, skills-only, local MCP, or hosted HTTP setup. Use actual tool availability to establish whether the runtime is connected.
+
+- Read the [repository README](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence) and [deployment guide](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/blob/main/docs/deployment.md) before configuring a host. Use `fusionify-audio doctor` to inspect FFmpeg availability and documented limits.
 - For local Desktop/Code, use `scripts/configure_client.py` to generate JSON with actual absolute paths. It prints a configuration by default; `--write` explicitly merges a file and creates a backup. Do not overwrite other MCP entries. The CLI script is part of the repository, not an MCP tool.
 - For the Claude Code plugin, load the repository's marketplace/plugin or use `--plugin-dir`; set the media root in the process environment. Distinguish plugin-root `.mcp.json` from client config containing `mcpServers`.
 - For web or a shared Desktop/Code workspace, use one authenticated HTTP server with a public HTTPS origin. Configure the exact `/mcp` URL and authorization request header in the client. Do not use a GitHub URL as an MCP endpoint. If the client's request-header option is unavailable, explain that limitation and use local mode rather than disabling server authentication.

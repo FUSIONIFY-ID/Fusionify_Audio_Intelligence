@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml"><img src="https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/actions/workflows/test.yml/badge.svg?branch=main" alt="CI status" /></a>
-  <a href="pyproject.toml"><img src="https://img.shields.io/badge/version-0.6.1-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Version 0.6.1" /></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/engine-0.6.1-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Engine version 0.6.1" /></a>
   <a href="#quick-start"><img src="https://img.shields.io/badge/Python-3.11%2B-c0ff58?style=flat-square&amp;labelColor=111b28" alt="Python 3.11 or newer" /></a>
   <a href="docs/tools.md"><img src="https://img.shields.io/badge/MCP-stdio%20%2B%20HTTP-c0ff58?style=flat-square&amp;labelColor=111b28" alt="MCP over stdio and HTTP" /></a>
 </p>
@@ -127,17 +127,25 @@ claude --plugin-dir /absolute/path/to/Fusionify_Audio_Intelligence
 | **music-driven-video** | Translate music and the content brief into a revisable visual story. |
 | **workspace-setup** | Configure clients, resolve inaccessible media, and recover workspace state. |
 
-### Desktop and code editors
+### Native plugins and code editors
 
-The MCP server is the integration layer for other clients. Use each client's configuration format.
+Plugin bundle **v0.6.2** includes **Agent Plugins 1.0.0** packaging for compatible editors, a **Cursor-native manifest**, and the existing Claude plugin. These bundles combine skills with an MCP launcher. See [plugin, marketplace, and skills.sh installation](docs/distribution.md) for the full routes.
 
 | Client | Configuration route | Current project support |
 | --- | --- | --- |
 | **Claude Desktop** | Local `mcpServers` entry | Configuration generator included. |
-| **Cursor** | [`.cursor/mcp.json`](https://cursor.com/docs/mcp) | Manual MCP setup; dedicated preset pending. |
-| **Kiro** | [`.kiro/settings/mcp.json`](https://kiro.dev/docs/mcp/configuration/) | Manual MCP setup; dedicated preset pending. |
-| **VS Code + Copilot** | [`.vscode/mcp.json`](https://code.visualstudio.com/docs/agents/reference/mcp-configuration), using `servers` | Manual MCP setup; dedicated preset pending. |
+| **Cursor** | Native plugin / Agent Plugins | Source manifests and repository marketplace included; public review remains separate. |
+| **Kiro** | GitHub/folder power import | Agent Plugins package included. |
+| **VS Code + Copilot** | Agent Customizations → plugin from source | Portable plugin and custom-marketplace route in compatible versions. |
 | **Remote MCP clients** | Authenticated HTTPS `/mcp` endpoint | Self-hosted HTTP server; see [deployment](docs/deployment.md). |
+
+Install the three skills separately with the skills CLI:
+
+```bash
+npx skills add FUSIONIFY-ID/Fusionify_Audio_Intelligence
+```
+
+A skills-only install supplies instructions. Connect the MCP runtime to process music or render videos. Native plugins need `uvx`, Git, FFmpeg, and an existing `FAI_MEDIA_ROOT` folder; the first launch fetches the documented pinned engine. Source packages are separate from curated public marketplace listings.
 
 Generate a local Claude Desktop entry with real absolute paths:
 
@@ -220,6 +228,7 @@ The optional Gemini adapter can provide mood, texture, and visual suggestions. I
 | [Editing workflows](docs/workflows.md) | Story direction, timing corrections, cue locks, previews, and footage controls. |
 | [MCP tool reference](docs/tools.md) | The complete tool map, output behavior, and operational limits. |
 | [Voice and script review](docs/voice-review.md) | Local ASR, transcript provenance, script comparisons, and subtitle timing. |
+| [Plugins and skills.sh](docs/distribution.md) | Native packages, source installs, custom marketplaces, and publication status. |
 | [Deployment](docs/deployment.md) | Docker, HTTPS, tokens, uploads, URL imports, and remote clients. |
 | [Verification](docs/verification.md) | What was tested, observed model errors, browser checks, and remaining gaps. |
 | [Specification](SPEC.md) | Product intent and implementation contracts. |

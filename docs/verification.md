@@ -1,5 +1,11 @@
 # Verification notes for v0.6.1
 
+## Native plugin distribution checks
+
+Plugin bundle v0.6.2 supplies root Agent Plugins manifests and a Cursor-native plugin/marketplace index, packaging the three skills with a commit-pinned uvx launcher. Canonical Agent Plugins 1.0.0 schema checks and standalone reference containment checks are available through `scripts/validate_distribution.py`. The separate `tests/distribution_smoke.py` exercises the exact launch command, initializes a real MCP session, discovers 36 tools, analyzes an eight-second synthetic click track and requests music direction. The backend unit count remains 48; distribution checks are additional integration checks.
+
+The skills CLI discovers all three existing public skills. Individual skills now keep their relative references inside their own directories, and explain the separately required MCP runtime. Source-installable packaging is not evidence of acceptance into a curated public marketplace, a skills.sh ranking, or successful native editor GUI sessions. No store publication or public HTTPS endpoint is claimed.
+
 ## Real local-model check v0.6.1
 
 A real local run exposed a decoder failure: faster-whisper 1.2.1 called PyAV with `metadata_errors`, rejected by PyAV 19.0.2. v0.6.1 passes bounded, validated 16 kHz mono float32 arrays directly to the backend. No PyAV re-decoding is required for inference. The runtime tested was Python 3.12.14, faster-whisper 1.2.1, CTranslate2 4.8.4 and NumPy 2.5.4, on CPU/int8 with two threads.

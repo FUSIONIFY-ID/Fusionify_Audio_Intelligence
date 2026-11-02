@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "fusionify-audio-intelligence",
+  "version": "0.6.2",
+  "description": "Analyze music timing and voice delivery, check scripts, export subtitles, and build revisable music-driven video projects through local or authenticated remote MCP.",
+  "author": {
+    "name": "FUSIONIFY"
+  },
+  "homepage": "https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence",
+  "repository": "https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence",
+  "keywords": [
+    "audio",
+    "music",
+    "mcp",
+    "beat",
+    "video",
+    "jj",
+    "remix",
+    "speech",
+    "intonation",
+    "subtitles"
+  ]
+}

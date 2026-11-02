@@ -1,5 +1,11 @@
 # Fusionify Audio Intelligence v0.6.1
 
+## Native plugin and skill distribution (bundle v0.6.2)
+
+Package the existing engine and three skills for the Agent Plugins 1.0.0 layout (root plugin.json, mcp.json and skills/), add a Cursor-native manifest and custom marketplace index, and retain the existing Claude layout. Use a tested, commit-pinned uvx engine launch so plugin startup does not depend on client-specific plugin-root placeholders or a writable plugin checkout. Require the user's media folder configuration; do not grant blanket tool approval, fetch model weights, or provision a public endpoint.
+
+Make each standalone skill self-contained when installed through the skills CLI, including relative references and a clear distinction between instructions and the required MCP runtime. Check remote discovery, an isolated real install, canonical manifest schemas, and a real MCP handshake/tool call using the exact packaged launcher. Distinguish source-installable packages/custom marketplaces from curated public listings and successful live editor UI sessions. Do not fabricate directory placement, install counts, publisher identities or review approval.
+
 ## v0.6.1 real local speech verification
 
 Exercise actual local Whisper inference on known-script synthetic narration, silence and speech with a music bed, without uploading audio. Keep model acquisition an explicit operator setup action outside tools. Pass bounded finite 16 kHz mono float PCM into the backend so ASR cannot re-decode media through a dependency-specific PyAV API. Preserve origin and timestamp uncertainty. Add a reproducible opt-in local-model smoke script; ordinary offline CI must not download model weights. Record the exact model revision, synthetic source, measured results and limits without presenting a small synthetic test as Indonesian/remix accuracy validation.

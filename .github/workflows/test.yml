@@ -24,6 +24,17 @@ jobs:
         run: python tests/mcp_smoke.py
       - name: HTTP MCP lifecycle
         run: python tests/http_mcp_smoke.py
+      - name: Native plugin schemas and standalone references
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/fai-plugin-schemas"
+          curl --fail --silent --show-error --location --max-time 30 --retry 3 https://agent-plugins.org/schemas/1.0.0/plugin.schema.json -o "$RUNNER_TEMP/fai-plugin-schemas/plugin.schema.json"
+          curl --fail --silent --show-error --location --max-time 30 --retry 3 https://agent-plugins.org/schemas/1.0.0/mcp.schema.json -o "$RUNNER_TEMP/fai-plugin-schemas/mcp.schema.json"
+          python scripts/validate_distribution.py --schema-dir "$RUNNER_TEMP/fai-plugin-schemas"
+      - name: Portable native plugin launcher
+        run: |
+          python -m pip install uv
+          python tests/distribution_smoke.py
   frontend:
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +51,10 @@ jobs:
       - run: npm ci
       - name: Validate Claude plugin manifest
         run: npx --yes @anthropic-ai/claude-code@2.1.316 plugin validate . --strict
+      - name: Discover standalone skills
+        run: npx --yes skills@1.7.4 add . --list
+        env:
+          DISABLE_TELEMETRY: '1'
       - run: npx playwright install --with-deps chromium
       - name: Creator browser workflow
         run: npm run test:e2e

@@ -1,9 +1,11 @@
 ---
 name: audio-intelligence
-description: Inspect actual music, waveform, beat timing, user tempo maps, tap tempo and measurable audio features. Use when a user asks Claude to listen to an MP3/remix/breakbeat, compare sounds, check beep alignment, fix BPM/beat markers, prepare timing for video editing, review vocal pitch/intonation, check spoken words against a script, or export subtitles.
+description: Inspect actual music, waveform, beat timing, user tempo maps, tap tempo and measurable audio features. Use when a user asks an AI agent to listen to an MP3/remix/breakbeat, compare sounds, check beep alignment, fix BPM/beat markers, prepare timing for video editing, review vocal pitch/intonation, check spoken words against a script, or export subtitles.
 ---
 
 # Audio intelligence
+
+This skill requires Fusionify MCP tools to process audio. A skills.sh installation adds instructions only. If the tools are absent, follow the [plugin/runtime setup guide](https://github.com/FUSIONIFY-ID/Fusionify_Audio_Intelligence/blob/main/docs/distribution.md); do not infer measured timing or words from a filename.
 
 1. Call `get_workspace`, resolve an actual accessible file or asset ID, then call `analyze_audio`.
 2. Read `get_audio_profile` for level, spectrum and tempo estimates, and `get_audio_timeline` for bounded source-relative events. Avoid calling signal features emotions or genres.
